@@ -14,15 +14,19 @@ public:
     LinkedList(T data) : length(1) { this->head = this->tail = new Node (data); }
     ~LinkedList();
 
-    size_t size() const { return this->length; }
     void clear();
+
+    size_t size() const { return this->length; }
+    size_t memory() const { return sizeof(Node) * this->length; }
 
     void push_back(const T&);
     void push_front(const T&);
-
+    void insert(const T&, const size_t);
+    void assign(const size_t, const T&);
+    
     void pop_back();
     void pop_front();
-    void pop_index(size_t);
+    void erase(size_t);
 
     T& operator[](size_t) const;
     void print() const;
@@ -37,7 +41,6 @@ private:
     void checkIndex(size_t) const;
     Node* getNodeByIndex(size_t) const;
 
-
     class Node
     {
     public:
@@ -48,11 +51,6 @@ private:
         Node* prev;
     };
 };
-
-
-
-
-
 
 
 template <typename T>
@@ -93,9 +91,37 @@ void LinkedList<T>::push_front(const T& data)
     else
     {
         this->head = new Node(data, nullptr, this->head);
-        this->head->prev->prev = this->head;
+        this->head->next->prev = this->head;
     }
     ++this->length;
+}
+
+template <typename T>
+void LinkedList<T>::insert(const T& data,const size_t index)
+{
+    // Checks if the length is 0
+    this->checkIndex(index);
+
+    if (index == 0)
+    {
+        this->push_front(data);
+    }
+    else
+    {
+        Node* changing_node = this->getNodeByIndex(index); 
+        changing_node->prev = new Node(data, changing_node->prev, changing_node);
+        changing_node->prev->prev->next = changing_node->prev;
+        ++this->length;
+    }
+}
+
+template <typename T>
+void LinkedList<T>::assign(const size_t length, const T& data)
+{
+    this->clear;
+
+    for(size_t i{ 0 }; i < length; ++i)
+        this->push_back(data);
 }
 
 template <typename T>
@@ -131,8 +157,9 @@ void LinkedList<T>::pop_front()
 }
 
 template <typename T>
-void LinkedList<T>::pop_index(size_t index)
+void LinkedList<T>::erase(size_t index)
 {
+    // Checks if the length is 0
     this->checkIndex(index);
 
     if (index == 0)
@@ -169,20 +196,19 @@ void LinkedList<T>::print() const
         return;
     }
 
+    std::cout << "DATA " << '\t' << "CURRENT    " << '\t' << "PREVIOUS    " << '\t' << "NEXT      " << std::endl;
     Node* current = this->head;
     do
     {
-        std::cout << current->data << ' ';
+        std::cout << current->data << '\t' << current << '\t' << current->prev << '\t' << current->next << std::endl;
         current = current->next;
     } while (current != nullptr);
-                
-    std::cout << std::endl;
 }
 
 template <typename T>
 void LinkedList<T>::checkIndex(size_t index) const
 {
-    if (this->length == 0 || index < 0 || index > this->legth - 1)
+    if (this->length == 0 || index < 0 || index > this->length - 1)
         throw std::exception();
 }
 
