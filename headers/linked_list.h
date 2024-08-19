@@ -12,6 +12,7 @@ class LinkedList
 public:
     LinkedList() : length(0), head(nullptr), tail(nullptr) {}
     LinkedList(T data) : length(1) { this->head = this->tail = new Node (data); }
+    LinkedList(const LinkedList&);
     ~LinkedList();
 
     void clear();
@@ -26,9 +27,13 @@ public:
     
     void pop_back();
     void pop_front();
-    void erase(size_t);
+    void erase(const size_t);
 
-    T& operator[](size_t) const;
+    T& operator[](const size_t) const;
+
+    bool operator==(const LinkedList&) const;
+    bool operator!=(const LinkedList&) const;
+
     void print() const;
 
 private:
@@ -38,12 +43,11 @@ private:
     Node* tail;
     size_t length;
 
-    void checkIndex(size_t) const;
-    Node* getNodeByIndex(size_t) const;
+    void checkIndex(const size_t) const;
+    Node* getNodeByIndex(const size_t) const;
 
-    class Node
+    struct Node
     {
-    public:
         Node(const T& data, Node* prev = nullptr, Node* next = nullptr) : data(data), prev(prev), next(next) {}
 
         T data;
@@ -53,6 +57,20 @@ private:
 };
 
 
+template <typename T>
+LinkedList<T>::LinkedList(const LinkedList& other) : length(0), head(nullptr), tail(nullptr)
+{
+    if (!other.length)
+        return;
+    
+    Node* current = other.head;
+    while (current != nullptr)
+    {
+        this->push_back(current->data);
+        current = current->next;
+    }
+}
+    
 template <typename T>
 LinkedList<T>::~LinkedList()
 {
@@ -118,7 +136,7 @@ void LinkedList<T>::insert(const T& data,const size_t index)
 template <typename T>
 void LinkedList<T>::assign(const size_t length, const T& data)
 {
-    this->clear;
+    this->clear();
 
     for(size_t i{ 0 }; i < length; ++i)
         this->push_back(data);
@@ -136,6 +154,8 @@ void LinkedList<T>::pop_back()
 
     if (new_tail != nullptr)
         this->tail->next = nullptr;
+    else
+        this->head = nullptr;
 
     --this->length;
 }
@@ -152,12 +172,14 @@ void LinkedList<T>::pop_front()
 
     if (new_head != nullptr)
         this->head->prev = nullptr;
+    else
+        this->tail = nullptr;
 
     --this->length;
 }
 
 template <typename T>
-void LinkedList<T>::erase(size_t index)
+void LinkedList<T>::erase(const size_t index)
 {
     // Checks if the length is 0
     this->checkIndex(index);
@@ -181,10 +203,52 @@ void LinkedList<T>::erase(size_t index)
 }
 
 template <typename T>
-T& LinkedList<T>::operator[](size_t index) const
+T& LinkedList<T>::operator[](const size_t index) const
 {
     this->checkIndex(index);
     return this->getNodeByIndex(index)->data;
+}
+
+template <typename T>
+bool LinkedList<T>::operator==(const LinkedList& other) const
+{
+    if (this->length != other.length)
+        return false;
+    if (!this->length && !other.length)
+        return true;
+
+    Node* this_current = this->head;
+    Node* other_current = other.head;
+
+    while (this_current != nullptr)
+    {
+        if (this_current->data != other_current->data)
+            return false;
+        this_current = this_current->next;
+        other_current = other_current->next;
+    }
+    return true;
+}
+
+template <typename T>
+bool LinkedList<T>::operator!=(const LinkedList& other) const
+{
+    if (this->length != other.length)
+        return true;
+    if (!this->length && !other.length)
+        return false;
+
+    Node* this_current = this->head;
+    Node* other_current = other.head;
+
+    while (this_current != nullptr)
+    {
+        if (this_current->data != other_current->data)
+            return true;
+        this_current = this_current->next;
+        other_current = other_current->next;
+    }
+    return false;
 }
 
 template <typename T>
@@ -206,14 +270,14 @@ void LinkedList<T>::print() const
 }
 
 template <typename T>
-void LinkedList<T>::checkIndex(size_t index) const
+void LinkedList<T>::checkIndex(const size_t index) const
 {
     if (this->length == 0 || index < 0 || index > this->length - 1)
         throw std::exception();
 }
 
 template <typename T>
-typename LinkedList<T>::Node* LinkedList<T>::getNodeByIndex(size_t index) const
+typename LinkedList<T>::Node* LinkedList<T>::getNodeByIndex(const size_t index) const
 {
     if (index == 0)
     {
