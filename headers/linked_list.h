@@ -43,7 +43,6 @@ private:
     Node* tail;
     size_t length;
 
-    void checkIndex(const size_t) const;
     Node* getNodeByIndex(const size_t) const;
 
     struct Node
@@ -117,9 +116,6 @@ void LinkedList<T>::push_front(const T& data)
 template <typename T>
 void LinkedList<T>::insert(const T& data,const size_t index)
 {
-    // Checks if the length is 0
-    this->checkIndex(index);
-
     if (index == 0)
     {
         this->push_front(data);
@@ -181,9 +177,6 @@ void LinkedList<T>::pop_front()
 template <typename T>
 void LinkedList<T>::erase(const size_t index)
 {
-    // Checks if the length is 0
-    this->checkIndex(index);
-
     if (index == 0)
     {
         this->pop_front();
@@ -205,7 +198,6 @@ void LinkedList<T>::erase(const size_t index)
 template <typename T>
 T& LinkedList<T>::operator[](const size_t index) const
 {
-    this->checkIndex(index);
     return this->getNodeByIndex(index)->data;
 }
 
@@ -267,13 +259,6 @@ void LinkedList<T>::print() const
         std::cout << current->data << '\t' << current << '\t' << current->prev << '\t' << current->next << std::endl;
         current = current->next;
     } while (current != nullptr);
-}
-
-template <typename T>
-void LinkedList<T>::checkIndex(const size_t index) const
-{
-    if (this->length == 0 || index < 0 || index > this->length - 1)
-        throw std::exception();
 }
 
 template <typename T>
