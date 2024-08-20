@@ -13,19 +13,19 @@ public:
     LinkedList() : length(0), head(nullptr), tail(nullptr) {}
     LinkedList(T data) : length(1) { this->head = this->tail = new Node (data); }
     LinkedList(const LinkedList&);
-    ~LinkedList();
+    ~LinkedList() { this->clear(); }
 
     void clear();
 
     size_t size() const { return this->length; }
     size_t memory() const { return sizeof(Node) * this->length; }
 
-    void push_back(const T&);
+    void push_back(const T&); // perfomance tested
     void push_front(const T&);
     void insert(const T&, const size_t);
     void assign(const size_t, const T&);
     
-    void pop_back();
+    void pop_back(); // perfomance tested
     void pop_front();
     void erase(const size_t);
 
@@ -44,6 +44,7 @@ private:
     size_t length;
 
     Node* getNodeByIndex(const size_t) const;
+    void fillAllNodes(const T&);
 
     struct Node
     {
@@ -59,23 +60,17 @@ private:
 template <typename T>
 LinkedList<T>::LinkedList(const LinkedList& other) : length(0), head(nullptr), tail(nullptr)
 {
-    if (!other.length)
-        return;
-    
-    Node* current = other.head;
-    while (current != nullptr)
-    {
-        this->push_back(current->data);
-        current = current->next;
+    if (other.length)
+    {    
+        Node* current = other.head;
+        while (current != nullptr)
+        {
+            this->push_back(current->data);
+            current = current->next;
+        }
     }
 }
     
-template <typename T>
-LinkedList<T>::~LinkedList()
-{
-    this->clear();
-}
-
 template <typename T>
 void LinkedList<T>::clear()
 {
@@ -83,8 +78,6 @@ void LinkedList<T>::clear()
     {
        this->pop_front();
     }
-    this->head = this->tail = nullptr;
-    this->length = 0;
 }
 
 template <typename T>
@@ -128,22 +121,30 @@ void LinkedList<T>::insert(const T& data,const size_t index)
         ++this->length;
     }
 }
-
 template <typename T>
 void LinkedList<T>::assign(const size_t length, const T& data)
 {
-    this->clear();
-
-    for(size_t i{ 0 }; i < length; ++i)
-        this->push_back(data);
+    if (this->length <= length)
+    {
+        // changing all nodes 
+        this->fillAllNodes(data);
+        // pushing new nodes
+        for (size_t i{ 0 }; i < length - this->length; ++i)
+            this->push_back(data);
+    }
+    else 
+    {
+        // removing extra nodes
+        for (size_t i{ 0 }; i < this->length - length; ++i)
+            this->pop_back();
+        // changing all nodes
+        this->fillAllNodes(data);
+    }
 }
 
 template <typename T>
 void LinkedList<T>::pop_back()
 {
-    if (this->tail == nullptr)
-        throw std::exception();
-
     Node* new_tail = this->tail->prev;
     delete this->tail;
     this->tail = new_tail;
@@ -159,9 +160,6 @@ void LinkedList<T>::pop_back()
 template <typename T>
 void LinkedList<T>::pop_front()
 {
-    if (this->head == nullptr)
-        throw std::exception();
-
     Node* new_head = this->head->next;
     delete this->head;
     this->head = new_head;
@@ -288,4 +286,15 @@ typename LinkedList<T>::Node* LinkedList<T>::getNodeByIndex(const size_t index) 
     }
 }
 
+template <typename T>
+void LinkedList<T>::fillAllNodes(const T& data)
+{
+    Node* current = this->head;
+    while (current != nullptr)
+    {
+        current->data = data;
+        current = current->next;
+    } 
+
+}
 #endif // LINKEDLIST_H
