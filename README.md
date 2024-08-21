@@ -16,7 +16,8 @@ The repository is organized into the following categories:
 ```
 cpp-snippets/
     ├── data-structures/
-    │   └── linked_list.hpp
+    │   ├── linked_list.hpp
+    │   └── timer.hpp
     └── algorithms/
 ```
 
@@ -30,7 +31,7 @@ cpp-snippets/
 This section includes C++ implementations of common data structures. These are provided as template classes in header files:
 
 - **Linked List**: A basic template class for a doubly linked list (`linked_list.hpp`).
-
+- **Timer**: A utility class for measuring elapsed time with support for multiple time units (`timer.hpp`).
 
 ### Algorithms
 
@@ -45,15 +46,22 @@ To use any of the code snippets:
    - These are provided as header files that you can include in your own projects. They are meant to be used as libraries and should not be compiled directly.
 
    Example usage in a separate file:
-   ```cpp
-   #include "data-structures/linked_list.hpp"
 
+   ```cpp
+   #include <iostream>
+   #include "data-structures/linked_list.hpp"
+   #include "data-structures/timer.hpp"
+   
    int main() {
        LinkedList<int> list;
-       list.push_back(1);
-       list.push_back(2);
-       // Continue with your program logic
+       
+       Timer timer;
+       timer.start();
+       list.assign(1000000000, 0)
+       timer.stop();
+       double elapsed = timer.elapsed(Timer::Unit::MILLI);
+       std::cout << "list filled with 1000000000 nulls in " << elapsed << "ms" << std::endl; 
+       
        return 0;
    }
-   ```
-
+    ```
