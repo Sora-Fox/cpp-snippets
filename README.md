@@ -4,13 +4,13 @@ Welcome to my C++ Snippets repository! This collection is a personal archive of 
 
 ## Table of Contents
 
-- Directory Structure
-- Data Structures
-- Algorithms 
-- Programs
-- How to Use
+- [Repository Structure](#repository-structure)
+- [Data Structures](#data-structures)
+- [Algorithms](#algorithms) 
+- [Programs](#programs)
+- [How to Use](#how-to-use)
 
-## Directory Structure
+## Repository Structure
 
 The repository is organized into the following categories:
 ```
@@ -22,28 +22,25 @@ cpp-snippets/
     └── programs/
         └── timer.hpp
 ```
+The repository is organized into the following categories:
 
-- **`data-structures/`**: header files implementing common data structures.
-- **`algorithms/`**: header files with various algorithms, categorized by their type (e.g., sorting, searching).
-- **`programs/`**: Standalone C++ programs that perform specific tasks.
+- **`data-structures/`**: header files with various data structures.
+- **`algorithms/`**: header files with various algorithm.
+- **`programs/`**: standalone C++ programs that perform specific tasks.
 
 
 ## Data Structures
-
-This section includes C++ implementations of common data structures. These are provided as template classes in header files:
 
 - **Linked List**: A basic template class for a doubly linked list (`linked_list.hpp`).
 - **Timer**: A utility class for measuring elapsed time with support for multiple time units (`timer.hpp`).
 
 ## Algorithms
 
-Here, you'll find header files with implementations of various algorithms, grouped by their categories:
+Comming soon...
 
 ## Programs
 
-The `programs` directory contains standalone C++ programs. These are self-contained scripts that perform specific tasks.
-
-- **Fined**: A program that searches for a character or substring within a given text (`finder.cpp`). It offers the option to perform a case-insensitive search.
+- **Finder**: Searches for a character or substring within a given text, with optional case-insensitive search (`finder.cpp`). 
 
 ## How to Use
 
