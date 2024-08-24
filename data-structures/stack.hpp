@@ -9,10 +9,14 @@ class Stack
 {
 public:
     Stack() : peek(nullptr), length(0) {};
+    // TODO new constructor with arguments
     ~Stack();
 
     Stack(const Stack&) = delete;
     void operator=(const Stack&) = delete;
+    Stack(const Stack&&) = delete;
+    void operator=(const Stack&&) = delete;
+    // TODO realise copy/move constructors and operators =
 
     void push(const T&);
     void pop();

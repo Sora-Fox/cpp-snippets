@@ -9,6 +9,7 @@ public:
     void start(); 
     void stop(); 
     double elapsed(Timer::Unit) const;
+
 private:
     std::chrono::time_point<std::chrono::steady_clock> begin, end;
     bool stopped;

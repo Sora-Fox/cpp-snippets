@@ -1,9 +1,7 @@
-#ifndef LINKEDLIST_H
-#define LINKEDLIST_H
-
+#ifndef LINKEDLIST_HPP
+#define LINKEDLIST_HPP
 
 #include <iostream>
-#include <cstddef>
 
 
 template <typename T>
@@ -14,7 +12,8 @@ public:
     LinkedList(T data) : length(1) { this->head = this->tail = new Node (data); }
     LinkedList(const LinkedList&);
     ~LinkedList() { this->clear(); }
-
+    
+    // TODO move construtor, operator = 
     void clear();
 
     size_t size() const { return this->length; }
@@ -24,12 +23,12 @@ public:
     void push_front(const T&);
     void insert(const T&, const size_t);
     void assign(const size_t, const T&);
-    
+
     void pop_back(); // perfomance tested
     void pop_front();
     void erase(const size_t);
 
-    T& operator[](const size_t) const;
+    T& operator[](const size_t) const; // TODO replace with iterators
 
     bool operator==(const LinkedList&) const;
     bool operator!=(const LinkedList&) const;
@@ -121,6 +120,7 @@ void LinkedList<T>::insert(const T& data,const size_t index)
         ++this->length;
     }
 }
+
 template <typename T>
 void LinkedList<T>::assign(const size_t length, const T& data)
 {
@@ -297,4 +297,6 @@ void LinkedList<T>::fillAllNodes(const T& data)
     } 
 
 }
-#endif // LINKEDLIST_H
+
+
+#endif // LINKEDLIST_HPP
