@@ -11,8 +11,6 @@ Welcome to my C++ Snippets repository! This collection is a personal archive of 
 
 ## Repository Structure
 
-The repository is organized into the following categories:
-
 ```
 cpp-snippets/
     ├── data-structures/
@@ -34,15 +32,15 @@ The repository is organized into the following categories:
 
 ## Data Structures
 
-- **Linked List**: A basic template class for a doubly linked list (`linked_list.hpp`).
-- **Timer**: A utility class for measuring elapsed time with support for multiple time units (`timer.hpp`).
-- **Stack**: A basic template class for a stack data structure (`stack.hpp`).
+- **`linked_list.hpp`**: A basic template class for a doubly linked list.
+- **`timer.hpp`**: A utility class for measuring elapsed time with support for multiple time units.
+- **`stack.hpp`**: A basic template class for a stack data structure.
 
 ## Algorithms
 
-- **Bubble Sort**: A template function for sorting elements in a std::vector using the bubble sort algorithm `(bubble_sort.hpp)`.
+- **`bubble_sort.hpp`**: A template function for sorting elements in a std::vector using the bubble sort algorithm.
 
 ## Programs
 
-- **Finder**: Searches for a character or substring within a given text, with optional case-insensitive search (`finder.cpp`). 
+- **`finder.cpp`**: Searches for a character or substring within a given text, with optional case-insensitive search. 
 
