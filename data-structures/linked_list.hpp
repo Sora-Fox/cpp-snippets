@@ -13,18 +13,18 @@ public:
     LinkedList(const LinkedList&);
     ~LinkedList() { this->clear(); }
     
-    // TODO move construtor, operator = 
+    // TODO move constructor, operator =
     void clear();
 
     size_t size() const { return this->length; }
     size_t memory() const { return sizeof(Node) * this->length; }
 
-    void push_back(const T&); // perfomance tested
+    void push_back(const T&); // performance tested
     void push_front(const T&);
     void insert(const T&, const size_t);
     void assign(const size_t, const T&);
 
-    void pop_back(); // perfomance tested
+    void pop_back(); // performance tested
     void pop_front();
     void erase(const size_t);
 
