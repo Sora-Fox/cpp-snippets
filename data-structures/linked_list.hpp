@@ -28,12 +28,11 @@ public:
     void pop_front();
     void erase(const size_t);
 
-    T& operator[](const size_t) const; // TODO replace with iterators
+    T& operator[](const size_t) const;
+    // TODO add iterators
 
     bool operator==(const LinkedList&) const;
     bool operator!=(const LinkedList&) const;
-
-    void print() const;
 
 private:
     class Node;
@@ -239,24 +238,6 @@ bool LinkedList<T>::operator!=(const LinkedList& other) const
         other_current = other_current->next;
     }
     return false;
-}
-
-template <typename T>
-void LinkedList<T>::print() const
-{
-    if (!this->length)
-    {
-        std::cout << "Empty list" << std::endl;
-        return;
-    }
-
-    std::cout << "DATA " << '\t' << "CURRENT    " << '\t' << "PREVIOUS    " << '\t' << "NEXT      " << std::endl;
-    Node* current = this->head;
-    do
-    {
-        std::cout << current->data << '\t' << current << '\t' << current->prev << '\t' << current->next << std::endl;
-        current = current->next;
-    } while (current != nullptr);
 }
 
 template <typename T>
