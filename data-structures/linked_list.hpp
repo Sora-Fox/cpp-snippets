@@ -1,7 +1,9 @@
 #ifndef LINKEDLIST_HPP
 #define LINKEDLIST_HPP
 
+#include <initializer_list>
 #include <iostream>
+#include <stdexcept>
 
 
 template <typename T>
@@ -9,11 +11,11 @@ class LinkedList
 {
 public:
     LinkedList() : length(0), head(nullptr), tail(nullptr) {}
-    LinkedList(T data) : length(1) { this->head = this->tail = new Node (data); }
+    LinkedList(std::initializer_list<T>);
     LinkedList(const LinkedList&);
+    LinkedList(LinkedList&& other) noexcept : length(other.length), head(std::move(other.head)), tail(std::move(other.tail)) { other.legth = 0; }
     ~LinkedList() { this->clear(); }
     
-    // TODO move constructor, operator =
     void clear();
 
     size_t size() const { return this->length; }
@@ -27,6 +29,9 @@ public:
     void pop_back(); // performance tested
     void pop_front();
     void erase(const size_t);
+
+    T& operator=(const LinkedList&);
+    T& operator=(LinkedList&&) noexcept;
 
     T& operator[](const size_t) const;
     // TODO add iterators
@@ -56,6 +61,22 @@ private:
 
 
 template <typename T>
+LinkedList<T>::LinkedList(std::initializer_list<T> values) : length(values.size()), head(nullptr), tail(nullptr)
+{
+    if (length == 0) return;
+    
+    this->head = new Node(values[0], nullptr, nullptr);
+    Node* current = this->head;
+
+    for (size_t i{ 1 }; i < length; ++i)
+    {
+        current->next = new Node(values[i], current, nullptr);
+        current = current->next;
+    }
+    this->tail = current;
+}
+
+template <typename T>
 LinkedList<T>::LinkedList(const LinkedList& other) : length(0), head(nullptr), tail(nullptr)
 {
     if (other.length)
@@ -68,7 +89,7 @@ LinkedList<T>::LinkedList(const LinkedList& other) : length(0), head(nullptr), t
         }
     }
 }
-    
+
 template <typename T>
 void LinkedList<T>::clear()
 {
@@ -190,6 +211,42 @@ void LinkedList<T>::erase(const size_t index)
         delete rm_node;
         --this->length;
     }
+}
+
+template <typename T>
+T& LinkedList<T>::operator=(const LinkedList& other)
+{
+    if (*this == other) return *this;
+    this->clear();
+    
+    this->head = this->tail = nullptr;
+    this->length = other.length;
+    if (this->length == 0) return *this;
+
+    Node* this_current = this->head;
+    Node* other_current = other.head;
+
+    while (other_current != nullptr)
+    {
+        this_current = other_current;
+        this_current = this_current->next;
+        other_current = other_current->next;
+    }
+    return *this;
+}
+
+template <typename T>
+T& LinkedList<T>::operator=(LinkedList&& other) noexcept
+{
+    this->clear();
+    if (other.length == 0) return *this;
+
+    this->head = std::move(other.head);
+    this->tail = std::move(other.tail);
+    this->length = other.length;
+    other.length = 0;
+
+    return *this;
 }
 
 template <typename T>
