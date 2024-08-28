@@ -18,7 +18,9 @@ cpp-snippets/
     │   ├── timer.hpp
     │   └── stack.hpp
     ├── algorithms/
-    │  └── bubble_sort.hpp
+    │   ├── bubble_sort.hpp
+    │   ├── merge_sort.hpp 
+    │   └── quick_sort.hpp
     └── programs/
         └── timer.hpp
 ```
@@ -39,6 +41,8 @@ The repository is organized into the following categories:
 ## Algorithms
 
 - **`bubble_sort.hpp`**: A template function for sorting elements in a std::vector using the bubble sort algorithm.
+- **`merge_sort.hpp`**: A template function for sorting elements in a std::vector using the merge sort algorithm.
+- **`quick_sort.hpp`**: A template function for sorting elements in a std::vector using the quick sort algorithm.
 
 ## Programs
 
