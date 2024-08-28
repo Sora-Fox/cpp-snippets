@@ -1,5 +1,9 @@
+#ifndef TIMER_HPP
+#define TIMER_HPP
+
 #include <chrono>
 #include <ratio>
+
 
 class Timer
 {
@@ -48,3 +52,6 @@ double Timer::elapsed(Timer::Unit unit=Timer::Unit::MILLI) const
             return 0.0;
     }
 }
+
+
+#endif // TIMER_HPP
