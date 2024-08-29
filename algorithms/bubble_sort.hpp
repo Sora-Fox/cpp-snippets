@@ -1,30 +1,56 @@
 #ifndef BUBBLE_SORT_HPP
 #define BUBBLE_SORT_HPP
 
-#include <vector>
-#include <cstddef>
+#include <iterator>
 
 
 template <typename T>
-void bubbleSort(std::vector<T>& vector)
+void bubbleSort(T& container)
 {
-    bool swapped;
-    size_t unsorted_length{ vector.size() };
+    auto unsorted_length{ std::distance(std::begin(container), std::end(container)) };
+    if (unsorted_length < 2) return;
 
+    bool swapped;
     do 
     {
         swapped = false;
 
-        for (size_t i{ 0 }; i < unsorted_length - 1; ++i)
+        auto iter{ std::begin(container) };
+
+        for (size_t index{ 0 }; index < unsorted_length - 1; ++index, ++iter)
         {
-            if (vector[i] > vector[i + 1])
+            auto next_iter{ std::next(iter) };
+
+            if (*iter > *next_iter)
             {
-                std::swap(vector[i], vector[i + 1]);
+                std::iter_swap(iter, next_iter);
                 swapped = true;
             }
         }
         
         --unsorted_length;
+    } while (swapped);
+}
+
+// for dynamic C-style arrays
+template <typename T>
+void bubbleSort(T* array, size_t size)
+{
+    if (size < 2) return;
+
+    bool swapped;
+    do
+    {
+        swapped = false;
+        for (size_t i{ 0 }; i < size - 1; ++i)
+        {
+            if (array[i] > array[i + 1])
+            {
+                std::swap(array[i], array[i + 1]);
+                swapped = true;
+            }
+        }
+        --size;
     } while (swapped);
 }
 
