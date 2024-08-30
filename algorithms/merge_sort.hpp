@@ -1,70 +1,55 @@
 #ifndef MERGE_SORT_HPP
 #define MERGE_SORT_HPP
 
+#include <iterator>
 #include <vector>
-#include <cstddef>
 
 
-template <typename T>
-void mergeSort(std::vector<T>&, size_t, size_t);
+template <typename It>
+void mergeSort(It, It);
 
-template <typename T>
-void merge(std::vector<T>&, size_t, size_t, size_t);
-
+template <typename It>
+void merge(It, It, It);
 
 template <typename T>
-void mergeSort(std::vector<T>& arr)
+void mergeSort(T& container)
 {
-    if (!arr.empty())
-        mergeSort(arr, 0, arr.size() - 1);
+    if (std::size(container) > 1)
+        mergeSort(std::begin(container), std::end(container));
 }
 
-template <typename T>
-void mergeSort(std::vector<T>& arr, size_t left, size_t right)
+template <typename It>
+void mergeSort(It left, It right)
 {
-    if (left < right)
+    if (std::distance(left, right) > 1 )
     {
-        size_t mid{ left + (right - left) / 2 };
-        mergeSort(arr, left, mid);
-        mergeSort(arr, mid + 1, right);
-        merge(arr, left, mid, right);
+        It mid{ std::next(left, std::distance(left, right) / 2) };
+        mergeSort(left, mid);
+        mergeSort(mid, right);
+        merge(left, mid, right);
     }
-
 }
 
-template <typename T>
-void merge(std::vector<T>& arr, size_t left, size_t mid, size_t right)
+template <typename It>
+void merge(It left, It mid, It right)
 {
-    std::vector<T> left_arr(mid - left + 1), right_arr(right - mid);
+    std::vector<typename std::iterator_traits<It>::value_type> left_arr(std::distance(left, mid));
+    std::vector<typename std::iterator_traits<It>::value_type> right_arr(std::distance(mid, right));
 
-    for (size_t i{ 0 }, j{ left }; i < left_arr.size(); ++i, ++j)
-        left_arr[i] = arr[j];
-    for (size_t i{ 0 }, j{ mid + 1 }; i < right_arr.size(); ++i, ++j)
-        right_arr[i] = arr[j];
+    std::copy(left, mid, std::begin(left_arr));
+    std::copy(mid, right, std::begin(right_arr));
 
-    size_t left_ind{ 0 }, right_ind{ 0 }, arr_ind{ left };
+    auto left_it{ left_arr.begin() };
+    auto right_it{ right_arr.begin() };
 
-    while (left_ind < left_arr.size() && right_ind < right_arr.size())
+    while (left_it != left_arr.end() && right_it != right_arr.end())
     {
-        if (left_arr[left_ind] < right_arr[right_ind])
-        {
-            arr[arr_ind++] = left_arr[left_ind++];
-        }
-        else
-        {
-            arr[arr_ind++] = right_arr[right_ind++];
-        }
+        *left = (*left_it < *right_it) ? *left_it++ : *right_it++;
+        std::advance(left, 1);
     }
 
-    while (left_ind < left_arr.size())
-    {
-        arr[arr_ind++] = left_arr[left_ind++];
-    }
-
-    while (right_ind < right_arr.size())
-    {
-        arr[arr_ind++] = right_arr[right_ind++];
-    }
+    std::copy(left_it, left_arr.end(), left);
+    std::copy(right_it, right_arr.end(), left);
 }
 
 
