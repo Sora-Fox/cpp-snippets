@@ -4,53 +4,45 @@
 #include <iterator>
 
 
+template <typename It>
+void bubbleSort(It left, It right);
+
 template <typename T>
 void bubbleSort(T& container)
 {
-    auto unsorted_length{ std::distance(std::begin(container), std::end(container)) };
-    if (unsorted_length < 2) return;
+    if (std::size(container) > 1)
+        bubbleSort(std::begin(container), std::end(container));
+}
 
+// for dynamic C-style arrays
+template <typename T>
+void bubbleSort(T*& dynamic_arr , size_t size)
+{
+    if (size > 1)
+        bubbleSort(dynamic_arr, dynamic_arr + size);
+}
+
+template <typename It>
+void bubbleSort(It left, It right)
+{
+    if (std::distance(left, right) < 2) return;
+
+    It unsorted_right{ right };
     bool swapped;
     do 
     {
         swapped = false;
 
-        auto iter{ std::begin(container) };
-
-        for (size_t index{ 0 }; index < unsorted_length - 1; ++index, ++iter)
+        for (It iter{ left }; std::next(iter) != unsorted_right; ++iter)
         {
             auto next_iter{ std::next(iter) };
-
             if (*iter > *next_iter)
             {
                 std::iter_swap(iter, next_iter);
                 swapped = true;
             }
         }
-        
-        --unsorted_length;
-    } while (swapped);
-}
-
-// for dynamic C-style arrays
-template <typename T>
-void bubbleSort(T* array, size_t size)
-{
-    if (size < 2) return;
-
-    bool swapped;
-    do
-    {
-        swapped = false;
-        for (size_t i{ 0 }; i < size - 1; ++i)
-        {
-            if (array[i] > array[i + 1])
-            {
-                std::swap(array[i], array[i + 1]);
-                swapped = true;
-            }
-        }
-        --size;
+        std::advance(unsorted_right, -1);
     } while (swapped);
 }
 
