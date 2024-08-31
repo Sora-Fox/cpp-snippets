@@ -1,47 +1,58 @@
 #ifndef QUICK_SORT_HPP
 #define QUICK_SORT_HPP
 
-#include <vector>
-#include <cstddef>
+#include <iterator>
 
+
+template <typename It>
+void quickSort(It, It);
+
+template <typename It>
+It partition(It, It);
 
 template <typename T>
-void quickSort(std::vector<T>&, size_t, size_t);
-
-template <typename T>
-void quickSort(std::vector<T>& arr)
+void quickSort(T& container)
 {
-    if (!arr.empty())
-        quickSort(arr, 0, arr.size() - 1);
+    if (std::size(container) > 1)
+        quickSort(std::begin(container), std::end(container));
 }
 
 template <typename T>
-void quickSort(std::vector<T>& arr, size_t left, size_t right)
+void quickSort(T* dynamic_arr, size_t size)
 {
-    if (left < right)
+    if (size > 1)
+        quickSort(dynamic_arr, dynamic_arr + size);
+}
+
+template <typename It>
+void quickSort(It first, It last)
+{
+    if (std::distance(first, last) > 1)
     {
-        T pivot{ arr[left + (right - left) / 2] };
-        size_t left_ind{ left }, right_ind{ right };
-
-        while(left_ind <= right_ind)
-        {
-            while (arr[left_ind] < pivot && left_ind < right) ++left_ind;
-            while (arr[right_ind] > pivot && right_ind > left) --right_ind;
-
-            if (left_ind <= right_ind)
-            {
-                std::swap(arr[left_ind], arr[right_ind]);
-                ++left_ind;
-                if (right_ind > left) --right_ind;
-            }
-        }
-        
-        if (left < right_ind)
-            quickSort(arr, left, right_ind);
-        if (left_ind < right)
-            quickSort(arr, left_ind, right);
+        It i = partition(first, last);
+        quickSort(first, i);
+        quickSort(i, last);
     }
 }
 
+template <typename It>
+It partition(It first, It last)
+{
+    auto pivot = *std::next(first, std::distance(first, last) / 2);
+    It left = first;
+    It right = std::prev(last);
+
+    while(true)
+    {
+        while (*left < pivot) std::advance(left, 1);
+        while (*right > pivot) std::advance(right, -1);
+
+        if (std::distance(left, right) <= 0) return left;
+
+        std::iter_swap(left, right);
+        std::advance(left, 1);
+        std::advance(right, -1);
+    }
+}
 
 #endif // QUICK_SORT_HPP
