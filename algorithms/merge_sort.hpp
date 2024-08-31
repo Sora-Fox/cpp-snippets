@@ -18,6 +18,13 @@ void mergeSort(T& container)
         mergeSort(std::begin(container), std::end(container));
 }
 
+template <typename T>
+void mergeSort(T*& dynamic_arr, size_t size)
+{
+    if (size > 2)
+        mergeSort(dynamic_arr, dynamic_arr + size);
+}
+
 template <typename It>
 void mergeSort(It left, It right)
 {
