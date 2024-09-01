@@ -1,9 +1,10 @@
 #ifndef MERGE_SORT_HPP
 #define MERGE_SORT_HPP
 
-#include <iterator>
-#include <vector>
+#include <iterator> // for std::begin/end, std::iterator_traits, std::copy, ...
+#include <vector>   // for std::vector
 
+namespace sorting {
 
 template <typename It>
 void mergeSort(It, It);
@@ -11,54 +12,51 @@ void mergeSort(It, It);
 template <typename It>
 void merge(It, It, It);
 
+// for STL/custom containers and static C-style arrays
 template <typename T>
-void mergeSort(T& container)
-{
+void mergeSort(T& container) {
     if (std::size(container) > 1)
         mergeSort(std::begin(container), std::end(container));
 }
 
+// for dynamic C-style arrays
 template <typename T>
-void mergeSort(T*& dynamic_arr, size_t size)
-{
+void mergeSort(T*& arrayPtr, size_t size) {
     if (size > 2)
-        mergeSort(dynamic_arr, dynamic_arr + size);
+        mergeSort(arrayPtr, arrayPtr + size);
 }
 
 template <typename It>
-void mergeSort(It left, It right)
-{
-    if (left != right && std::next(left) != right)
-    {
-        It mid{ std::next(left, std::distance(left, right) / 2) };
-        mergeSort(left, mid);
-        mergeSort(mid, right);
-        merge(left, mid, right);
+void mergeSort(It beginIt, It endIt) {
+    if (beginIt != endIt && std::next(beginIt) != endIt) {
+        It midIt = std::next(beginIt, std::distance(beginIt, endIt) / 2);
+        mergeSort(beginIt, midIt);
+        mergeSort(midIt, endIt);
+        merge(beginIt, midIt, endIt);
     }
 }
 
 template <typename It>
-void merge(It left, It mid, It right)
-{
-    using value_type = typename std::iterator_traits<It>::value_type;
-    std::vector<value_type> left_arr(std::distance(left, mid));
-    std::vector<value_type> right_arr(std::distance(mid, right));
+void merge(It beginIt, It midIt, It endIt) {
+    using ValueType = typename std::iterator_traits<It>::value_type;
+    std::vector<ValueType> beginIt_arr(std::distance(beginIt, midIt));
+    std::vector<ValueType> endIt_arr(std::distance(midIt, endIt));
 
-    std::copy(left, mid, std::begin(left_arr));
-    std::copy(mid, right, std::begin(right_arr));
+    std::copy(beginIt, midIt, std::begin(beginIt_arr));
+    std::copy(midIt, endIt, std::begin(endIt_arr));
 
-    auto left_it{ left_arr.begin() };
-    auto right_it{ right_arr.begin() };
+    auto leftIt = beginIt_arr.begin();
+    auto rightIt = endIt_arr.begin();
 
-    while (left_it != left_arr.end() && right_it != right_arr.end())
-    {
-        *left = (*left_it < *right_it) ? *left_it++ : *right_it++;
-        ++left;
+    while (leftIt != beginIt_arr.end() && rightIt != endIt_arr.end()) {
+        *beginIt = (*leftIt < *rightIt) ? *leftIt++ : *rightIt++;
+        ++beginIt;
     }
 
-    std::copy(left_it, left_arr.end(), left);
-    std::copy(right_it, right_arr.end(), left);
+    std::copy(leftIt, beginIt_arr.end(), beginIt);
+    std::copy(rightIt, endIt_arr.end(), beginIt);
 }
 
+} // namespace sorting
 
 #endif // MERGE_SORT_HPP

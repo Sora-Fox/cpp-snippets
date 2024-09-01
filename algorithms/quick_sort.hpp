@@ -1,7 +1,9 @@
 #ifndef QUICK_SORT_HPP
 #define QUICK_SORT_HPP
 
-#include <iterator>
+#include <iterator> // for size_t, std::prev, std::next, std::iter_swap, std::size
+
+namespace sorting {
 
 template <typename It>
 void quickSort(It, It);
@@ -9,50 +11,50 @@ void quickSort(It, It);
 template <typename It>
 It partition(It, It);
 
+// for STL/custom containers and static C-style arrays
 template <typename T>
-void quickSort(T& container)
-{
+void quickSort(T& container) {
     if (std::size(container) > 1)
         quickSort(std::begin(container), std::end(container));
 }
 
+// for dynamic C-style arrays
 template <typename T>
-void quickSort(T* dynamic_arr, size_t size)
-{
+void quickSort(T* arrayPtr, size_t size) {
     if (size > 1)
-        quickSort(dynamic_arr, dynamic_arr + size);
+        quickSort(arrayPtr, arrayPtr + size);
 }
 
 template <typename It>
-void quickSort(It first, It last)
-{
-    if (first != last && std::next(first) != last)
-    {
-        It i = partition(first, last);
-        quickSort(first, i);
-        quickSort(i, last);
+void quickSort(It beginIt, It endIt) {
+    if (beginIt != endIt && std::next(beginIt) != endIt) {
+        It middleIt = partition(beginIt, endIt);
+        quickSort(beginIt, middleIt);
+        quickSort(middleIt, endIt);
     }
 }
 
 template <typename It>
-It partition(It first, It last)
-{
-    auto pivot = *std::prev(last);
-    It left = first;
-    It right = std::prev(last);
+It partition(It beginIt, It endIt) {
+    auto pivot = *std::prev(endIt);
+    It leftIt = beginIt;
+    It rightIt = std::prev(endIt);
 
-    while (true)
-    {
-        while (*left < pivot) ++left;
-        while (*right > pivot) --right;
+    while (true) {
+        while (*leftIt < pivot)
+            ++leftIt;
+        while (*rightIt > pivot)
+            --rightIt;
 
-        if (left == right || left == std::next(right))
-            return left;
+        if (leftIt == rightIt || leftIt == std::next(rightIt))
+            return leftIt;
 
-        std::iter_swap(left, right);
-        ++left;
-        --right;
+        std::iter_swap(leftIt, rightIt);
+        ++leftIt;
+        --rightIt;
     }
 }
+
+} // namespace sorting
 
 #endif // QUICK_SORT_HPP
