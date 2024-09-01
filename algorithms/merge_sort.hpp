@@ -28,7 +28,7 @@ void mergeSort(T*& dynamic_arr, size_t size)
 template <typename It>
 void mergeSort(It left, It right)
 {
-    if (std::distance(left, right) > 1 )
+    if (left != right && std::next(left) != right)
     {
         It mid{ std::next(left, std::distance(left, right) / 2) };
         mergeSort(left, mid);
@@ -40,8 +40,9 @@ void mergeSort(It left, It right)
 template <typename It>
 void merge(It left, It mid, It right)
 {
-    std::vector<typename std::iterator_traits<It>::value_type> left_arr(std::distance(left, mid));
-    std::vector<typename std::iterator_traits<It>::value_type> right_arr(std::distance(mid, right));
+    using value_type = typename std::iterator_traits<It>::value_type;
+    std::vector<value_type> left_arr(std::distance(left, mid));
+    std::vector<value_type> right_arr(std::distance(mid, right));
 
     std::copy(left, mid, std::begin(left_arr));
     std::copy(mid, right, std::begin(right_arr));
@@ -52,7 +53,7 @@ void merge(It left, It mid, It right)
     while (left_it != left_arr.end() && right_it != right_arr.end())
     {
         *left = (*left_it < *right_it) ? *left_it++ : *right_it++;
-        std::advance(left, 1);
+        ++left;
     }
 
     std::copy(left_it, left_arr.end(), left);

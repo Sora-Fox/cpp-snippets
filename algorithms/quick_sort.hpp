@@ -3,7 +3,6 @@
 
 #include <iterator>
 
-
 template <typename It>
 void quickSort(It, It);
 
@@ -27,7 +26,7 @@ void quickSort(T* dynamic_arr, size_t size)
 template <typename It>
 void quickSort(It first, It last)
 {
-    if (std::distance(first, last) > 1)
+    if (first != last && std::next(first) != last)
     {
         It i = partition(first, last);
         quickSort(first, i);
@@ -38,20 +37,21 @@ void quickSort(It first, It last)
 template <typename It>
 It partition(It first, It last)
 {
-    auto pivot = *std::next(first, std::distance(first, last) / 2);
+    auto pivot = *std::prev(last);
     It left = first;
     It right = std::prev(last);
 
-    while(true)
+    while (true)
     {
-        while (*left < pivot) std::advance(left, 1);
-        while (*right > pivot) std::advance(right, -1);
+        while (*left < pivot) ++left;
+        while (*right > pivot) --right;
 
-        if (std::distance(left, right) <= 0) return left;
+        if (left == right || left == std::next(right))
+            return left;
 
         std::iter_swap(left, right);
-        std::advance(left, 1);
-        std::advance(right, -1);
+        ++left;
+        --right;
     }
 }
 

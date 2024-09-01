@@ -25,8 +25,6 @@ void bubbleSort(T*& dynamic_arr , size_t size)
 template <typename It>
 void bubbleSort(It left, It right)
 {
-    if (std::distance(left, right) < 2) return;
-
     It unsorted_right{ right };
     bool swapped;
     do 
@@ -42,7 +40,7 @@ void bubbleSort(It left, It right)
                 swapped = true;
             }
         }
-        std::advance(unsorted_right, -1);
+        --unsorted_right;
     } while (swapped);
 }
 
