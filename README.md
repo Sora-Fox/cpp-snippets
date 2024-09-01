@@ -40,9 +40,11 @@ The repository is organized into the following categories:
 
 ## Algorithms
 
-- **`bubble_sort.hpp`**: A template function for sorting elements in a std::vector using the bubble sort algorithm.
-- **`merge_sort.hpp`**: A template function for sorting elements in a std::vector using the merge sort algorithm.
-- **`quick_sort.hpp`**: A template function for sorting elements in a std::vector using the quick sort algorithm.
+The following template functions are designed for sorting elements in STL containers and C-style arrays:
+
+- **`bubble_sort.hpp`**: Implements the bubble sort algorithm.
+- **`merge_sort.hpp`**: Implements the merge sort algorithm.
+- **`quick_sort.hpp`**: Implements the quick sort algorithm. 
 
 ## Programs
 
