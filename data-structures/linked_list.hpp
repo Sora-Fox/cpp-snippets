@@ -13,13 +13,13 @@ class LinkedList {
     LinkedList(std::initializer_list<T>);
     LinkedList(const LinkedList&);
     LinkedList(LinkedList&& other) noexcept;
-    ~LinkedList() { this->clear(); }
+    ~LinkedList() { clear(); }
 
     void clear();
     class iterator;
 
-    size_t size() const { return this->length; }
-    size_t memory() const { return sizeof(Node) * this->length; }
+    size_t size() const { return length; }
+    size_t memory() const { return sizeof(Node) * length; }
 
     void push_back(const T&); // performance tested
     void push_front(const T&);
@@ -28,11 +28,10 @@ class LinkedList {
 
     void pop_back(); // performance tested
     void pop_front();
-    void erase(const size_t);
     iterator erase(iterator);
 
-    iterator begin() const { return iterator(this->head); }
-    iterator end() const { return iterator(nullptr); }
+    iterator begin() const { return iterator(head); }
+    iterator end() const { return iterator(sentinel); }
     // TODO add const iterators and reversed iterators
 
     LinkedList<T>& operator=(const LinkedList&);
@@ -48,9 +47,6 @@ class LinkedList {
     Node* tail;
     Node* sentinel;
     size_t length;
-
-    Node* getNodeByIndex(const size_t) const;
-    void fillAllNodes(const T&);
 
     struct Node {
         Node(const T& data, Node* prev = nullptr, Node* next = nullptr)
@@ -76,36 +72,31 @@ class LinkedList<T>::iterator {
     iterator(Node* ptr) : ptr(ptr) {}
 
     iterator& operator++() {
-        this->ptr = this->ptr->next;
+        ptr = ptr->next;
         return *this;
     }
 
     iterator operator++(int) {
-        iterator tmp {this->ptr};
-        ++(*this);
+        iterator tmp(ptr);
+        ptr = ptr->next;
         return tmp;
     }
 
     iterator& operator--() {
-        if (this->ptr != nullptr)
-            this->ptr = this->ptr->prev;
+        ptr = ptr->prev;
         return *this;
     }
 
     iterator operator--(int) {
-        iterator tmp {this->ptr};
-        --(*this);
+        iterator tmp(ptr);
+        ptr = ptr->prev;
         return tmp;
     }
 
-    T& operator*() { return this->ptr->data; }
+    T& operator*() { return ptr->data; }
 
-    bool operator!=(const iterator& other) const {
-        return this->ptr != other.ptr;
-    }
-    bool operator==(const iterator& other) const {
-        return this->ptr == other.ptr;
-    }
+    bool operator!=(const iterator& other) const { return ptr != other.ptr; }
+    bool operator==(const iterator& other) const { return ptr == other.ptr; }
 
   private:
     Node* ptr;
@@ -117,13 +108,12 @@ LinkedList<T>::LinkedList(std::initializer_list<T> values)
     if (length == 0)
         return;
 
-    this->head = new Node(*values.begin(), nullptr, nullptr);
-    Node* current = this->head;
+    auto iter = values.begin();
+    head = new Node(*iter);
+    Node* current = head;
 
-    for (auto i = values.begin(); i != values.end(); ++i) {
-        if (i == values.begin())
-            continue;
-        current->next = new Node(*i, current, nullptr);
+    for (; iter != values.end(); ++iter) {
+        current->next = new Node(*iter, current);
         current = current->next;
     }
     tail = current;
@@ -133,13 +123,17 @@ LinkedList<T>::LinkedList(std::initializer_list<T> values)
 
 template <typename T>
 LinkedList<T>::LinkedList(const LinkedList& other)
-    : length(0), head(nullptr), tail(nullptr), sentinel(nullptr) {
-    if (other.length) {
-        Node* current = other.head;
-        while (current != other.sentinel) {
-            this->push_back(current->data);
+    : length(other.length), head(nullptr), tail(nullptr), sentinel(nullptr) {
+    if (length != 0) {
+        head = new Node(other.head->data);
+        Node* current = head;
+        Node* other_current = other.head->next;
+        while (other_current != other.tail) {
+            current->next = new Node(other_current->data, current);
             current = current->next;
+            other_current = other_current->next;
         }
+        tail = new Node(other_current->data, current);
         sentinel = new Node(0, tail);
         tail->next = sentinel;
     }
@@ -147,135 +141,95 @@ LinkedList<T>::LinkedList(const LinkedList& other)
 
 template <typename T>
 LinkedList<T>::LinkedList(LinkedList&& other) noexcept {
-    this->head = other.head;
-    this->tail = other.tail;
-    this->sentinel = other.sentinel;
-    this->length = other.length;
+    head = other.head;
+    tail = other.tail;
+    sentinel = other.sentinel;
+    length = other.length;
 
     other.head = other.tail = other.sentinel = nullptr;
     other.length = 0;
 }
 
+// TODO rewrite method clear
 template <typename T>
 void LinkedList<T>::clear() {
-    while (this->length) {
-        this->pop_front();
+    Node* current = head;
+    while (current != sentinel) {
+        current = current->next;
+        delete current->prev;
     }
-    delete sentinel;
-    sentinel = nullptr;
+    if (current != nullptr)
+        delete current;
+    head = tail = sentinel = nullptr;
+    length = 0;
 }
 
 template <typename T>
 void LinkedList<T>::push_back(const T& data) {
-    if (!this->length) {
-        this->head = this->tail = new Node(data);
+    if (length != 0) {
+        tail = new Node(data, tail, sentinel);
+        tail->prev->next = tail;
+        sentinel->prev = tail;
+    } else {
+        head = tail = new Node(data);
         sentinel = new Node(0, tail);
         tail->next = sentinel;
-    } else {
-        this->tail = new Node(data, this->tail, sentinel);
-        this->tail->prev->next = this->tail;
-        sentinel->prev = tail;
     }
-    ++this->length;
+    ++length;
 }
 
 template <typename T>
 void LinkedList<T>::push_front(const T& data) {
-    if (!this->length) {
-        this->head = this->tail = new Node(data);
+    if (length != 0) {
+        head = new Node(data, nullptr, head);
+        head->next->prev = head;
+    } else {
+        head = tail = new Node(data);
         sentinel = new Node(0, tail);
         tail->next = sentinel;
-    } else {
-        this->head = new Node(data, nullptr, this->head);
-        this->head->next->prev = this->head;
     }
-    ++this->length;
-}
-/*
-template <typename T>
-void LinkedList<T>::insert(const T& data, const size_t index) {
-    if (index == 0) {
-        this->push_front(data);
-    } else {
-        Node* changing_node = this->getNodeByIndex(index);
-        changing_node->prev =
-            new Node(data, changing_node->prev, changing_node);
-        changing_node->prev->prev->next = changing_node->prev;
-        ++this->length;
-    }
+    ++length;
 }
 
-template <typename T>
-void LinkedList<T>::assign(const size_t length, const T& data) {
-    if (this->length <= length) {
-        this->fillAllNodes(data);
-        for (size_t i {0}; i < length - this->length; ++i)
-            this->push_back(data);
-    } else {
-        for (size_t i {0}; i < this->length - length; ++i)
-            this->pop_back();
-        this->fillAllNodes(data);
-    }
-}
-*/
 template <typename T>
 void LinkedList<T>::pop_back() {
-    Node* new_tail = this->tail->prev;
-    delete this->tail;
-    this->tail = new_tail;
+    Node* new_tail = tail->prev;
+    delete tail;
+    tail = new_tail;
 
-    if (new_tail != nullptr) {
-        this->tail->next = sentinel;
+    if (tail != nullptr) {
+        tail->next = sentinel;
         sentinel->prev = tail;
     } else {
-        this->head = sentinel = nullptr;
+        head = sentinel = nullptr;
     }
-
-    --this->length;
+    --length;
 }
 
 template <typename T>
 void LinkedList<T>::pop_front() {
-    Node* new_head = this->head->next;
-    delete this->head;
-    this->head = new_head;
+    Node* new_head = head->next;
+    delete head;
+    head = new_head;
 
-    if (new_head != nullptr)
-        this->head->prev = nullptr;
-    else {
-        this->tail = sentinel = nullptr;
-    }
-
-    --this->length;
+    if (head != nullptr)
+        head->prev = nullptr;
+    else
+        tail = sentinel = nullptr;
+    --length;
 }
-/*
-template <typename T>
-void LinkedList<T>::erase(const size_t index) {
-    if (index == 0) {
-        this->pop_front();
-    } else if (index == this->length - 1) {
-        this->pop_back();
-    } else {
-        Node* rm_node = this->getNodeByIndex(index);
-        rm_node->prev->next = rm_node->next;
-        rm_node->next->prev = rm_node->prev;
-        delete rm_node;
-        --this->length;
-    }
-}
-*/
 
 template <typename T>
 typename LinkedList<T>::iterator
 LinkedList<T>::erase(LinkedList<T>::iterator where) {
-    if (where.ptr == this->head) {
-        this->pop_front();
-        return this->begin();
-    } else if (where.ptr == this->tail->prev) {
-        this->pop_back();
-        return --this->end();
-    } else if (where != this->end()) {
-        for (auto it = this->begin(); it != this->end(); ++it) {
+    if (where.ptr == head) {
+        pop_front();
+        return begin();
+    } else if (where.ptr == tail->prev) {
+        pop_back();
+        return --end();
+    } else if (where != end()) {
+        for (auto it = begin(); it != end(); ++it) {
             if (it == where) {
                 it.ptr->next->prev = it.ptr->prev;
                 it.ptr->prev->next = it.ptr->next;
@@ -287,92 +241,65 @@ LinkedList<T>::erase(LinkedList<T>::iterator where) {
         }
     }
 }
-// TODO here
+
 template <typename T>
 LinkedList<T>& LinkedList<T>::operator=(const LinkedList& other) {
     if (this == &other)
         return *this;
-    this->clear();
 
-    this->head = this->tail = nullptr; // TODO check if it necessary
-    this->length = other.length;
-    if (this->length == 0)
+    clear();
+    length = other.length;
+    if (length == 0)
         return *this;
 
+    head = new Node(other.head->data);
+    Node* current = head;
     Node* other_current = other.head;
-    Node* this_current = this->head = new Node(other_current->data);
 
-    while (other_current->next != nullptr) {
+    while (other_current != other.tail->prev) {
         other_current = other_current->next;
-        this_current->next = new Node(other_current->data, this_current);
-        this_current = this_current->next;
+        current->next = new Node(other_current->data, current);
+        current = current->next;
     }
-    // TODO where is tail?
+    tail = new Node(other.tail->data, current);
+    sentinel = new Node(0, tail);
+    tail->next = sentinel;
     return *this;
 }
 
 template <typename T>
 LinkedList<T>& LinkedList<T>::operator=(LinkedList&& other) noexcept {
-    this->clear();
+    clear();
     if (other.length == 0)
         return *this;
 
-    this->head = other.head;
-    this->tail = other.tail;
-    this->length = other.length;
+    head = other.head;
+    tail = other.tail;
+    sentinel = other.sentinel;
+    length = other.length;
 
     other.head = other.tail = nullptr;
     other.length = 0;
-
     return *this;
 }
 
 template <typename T>
 bool LinkedList<T>::operator==(const LinkedList& other) const {
-    if (this->length != other.length)
+    if (length != other.length)
         return false;
-    if (!this->length && !other.length)
+    if (!length && !other.length)
         return true;
 
-    Node* this_current = this->head;
+    Node* current = head;
     Node* other_current = other.head;
 
-    while (this_current != nullptr) {
-        if (this_current->data != other_current->data)
+    while (current != tail) {
+        if (current->data != other_current->data)
             return false;
-        this_current = this_current->next;
+        current = current->next;
         other_current = other_current->next;
     }
     return true;
-}
-
-template <typename T>
-typename LinkedList<T>::Node*
-LinkedList<T>::getNodeByIndex(const size_t index) const {
-    if (index == 0) {
-        return this->head;
-    } else if (index == this->length - 1) {
-        return this->tail;
-    } else if (index <= this->length / 2) {
-        Node* result = this->head;
-        for (size_t i {0}; i < index; ++i)
-            result = result->next;
-        return result;
-    } else {
-        Node* result = this->tail;
-        for (size_t i {this->length - 1}; i > index; --i)
-            result = result->prev;
-        return result;
-    }
-}
-
-template <typename T>
-void LinkedList<T>::fillAllNodes(const T& data) {
-    Node* current = this->head;
-    while (current != nullptr) {
-        current->data = data;
-        current = current->next;
-    }
 }
 
 #endif // LINKEDLIST_HPP
