@@ -8,39 +8,37 @@ Welcome to my C++ Snippets repository! This collection is a personal archive of 
 - [Data Structures](#data-structures)
 - [Algorithms](#algorithms) 
 - [Programs](#programs)
+- [Utilities](#utilities)
 
 ## Repository Structure
 
 ```
 cpp-snippets/
     ├── data-structures/
-    │   ├── linked_list.hpp
-    │   ├── timer.hpp
+    │   ├── list.hpp
     │   └── stack.hpp
     ├── algorithms/
     │   ├── bubble_sort.hpp
     │   ├── merge_sort.hpp 
     │   └── quick_sort.hpp
-    └── programs/
+    ├── programs/
+    │   └── finder.cpp
+    └── utils/
         └── timer.hpp
 ```
 
 The repository is organized into the following categories:
 
-- **`data-structures/`**: header files with various data structures.
-- **`algorithms/`**: header files with various algorithm.
-- **`programs/`**: standalone C++ programs that perform specific tasks.
-
-
 ## Data Structures
 
-- **`linked_list.hpp`**: A basic template class for a doubly linked list.
-- **`timer.hpp`**: A utility class for measuring elapsed time with support for multiple time units.
-- **`stack.hpp`**: A basic template class for a stack data structure.
+This section contains template classes that implement common data structures:
+
+- **`linked_list.hpp`**: A doubly linked list, providing bidirectional iterators.
+- **`stack.hpp`**: A stack.
 
 ## Algorithms
 
-The following template functions are designed for sorting elements in STL containers and C-style arrays:
+The following files contain template functions are designed for sorting elements in STL containers and C-style arrays:
 
 - **`bubble_sort.hpp`**: Implements the bubble sort algorithm.
 - **`merge_sort.hpp`**: Implements the merge sort algorithm.
@@ -48,5 +46,12 @@ The following template functions are designed for sorting elements in STL contai
 
 ## Programs
 
+This section includes standalone programs that perform specific tasks:
+
 - **`finder.cpp`**: Searches for a character or substring within a given text, with optional case-insensitive search. 
 
+## Utilities
+
+Utility classes and functions to assist with various programming tasks:
+
+- **`timer.hpp`**: A utility class for measuring elapsed time with support for multiple time units.
