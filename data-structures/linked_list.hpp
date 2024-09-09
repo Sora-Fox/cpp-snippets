@@ -1,29 +1,30 @@
-#ifndef LINKEDLIST_HPP
-#define LINKEDLIST_HPP
+#ifndef FTL_LIST_HPP
+#define FTL_LIST_HPP
 
-#include <cstddef>
 #include <initializer_list>
 #include <iterator>
 
-template <typename T>
-class LinkedList {
-   public:
-    LinkedList() : length(0), head(nullptr), tail(nullptr), sentinel(nullptr) {}
-    LinkedList(std::initializer_list<T>);
-    LinkedList(const LinkedList&);
-    LinkedList(LinkedList&& other) noexcept;
-    ~LinkedList() { clear(); }
+namespace ftl {
 
-    void clear();
+template <typename T>
+class List {
+public:
+    List() : length(0), head(nullptr), tail(nullptr), sentinel(nullptr) {}
+    List(std::initializer_list<T>);
+    List(const List&);
+    List(List&&) noexcept;
+    ~List() { clear(); }
+
     class iterator;
 
+    void clear();
     size_t size() const { return length; }
-    size_t memory() const { return sizeof(Node) * length; }
+    bool empty() const { return length == 0; }
 
-    void push_back(const T&);  // performance tested
+    void push_back(const T&);
     void push_front(const T&);
 
-    void pop_back();  // performance tested
+    void pop_back();
     void pop_front();
 
     iterator erase(iterator);
@@ -33,13 +34,13 @@ class LinkedList {
     iterator end() const { return iterator(sentinel); }
     // TODO add const iterators and reversed iterators
 
-    LinkedList<T>& operator=(const LinkedList&);
-    LinkedList<T>& operator=(LinkedList&&) noexcept;
+    List<T>& operator=(const List&);
+    List<T>& operator=(List&&) noexcept;
 
-    bool operator==(const LinkedList&) const;
-    bool operator!=(const LinkedList& other) const { return !(*this == other); }
+    bool operator==(const List&) const;
+    bool operator!=(const List& other) const { return !(*this == other); }
 
-   private:
+private:
     struct Node;
 
     Node* head;
@@ -58,9 +59,9 @@ class LinkedList {
 };
 
 template <typename T>
-class LinkedList<T>::iterator {
-   public:
-    friend class LinkedList;
+class List<T>::iterator {
+public:
+    friend class List;
 
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
@@ -97,14 +98,15 @@ class LinkedList<T>::iterator {
     bool operator!=(const iterator& other) const { return ptr != other.ptr; }
     bool operator==(const iterator& other) const { return ptr == other.ptr; }
 
-   private:
+private:
     Node* ptr;
 };
 
 template <typename T>
-LinkedList<T>::LinkedList(std::initializer_list<T> values)
+List<T>::List(std::initializer_list<T> values)
     : length(values.size()), head(nullptr), tail(nullptr), sentinel(nullptr) {
-    if (length == 0) return;
+    if (length == 0)
+        return;
 
     auto iter = values.begin();
     head = new Node(*iter);
@@ -121,7 +123,7 @@ LinkedList<T>::LinkedList(std::initializer_list<T> values)
 }
 
 template <typename T>
-LinkedList<T>::LinkedList(const LinkedList& other)
+List<T>::List(const List& other)
     : length(other.length), head(nullptr), tail(nullptr), sentinel(nullptr) {
     if (length != 0) {
         head = new Node(other.head->data);
@@ -139,7 +141,7 @@ LinkedList<T>::LinkedList(const LinkedList& other)
 }
 
 template <typename T>
-LinkedList<T>::LinkedList(LinkedList&& other) noexcept {
+List<T>::List(List&& other) noexcept {
     head = other.head;
     tail = other.tail;
     sentinel = other.sentinel;
@@ -150,7 +152,7 @@ LinkedList<T>::LinkedList(LinkedList&& other) noexcept {
 }
 
 template <typename T>
-void LinkedList<T>::clear() {
+void List<T>::clear() {
     Node* current = head;
     while (current != sentinel) {
         current = current->next;
@@ -162,7 +164,7 @@ void LinkedList<T>::clear() {
 }
 
 template <typename T>
-void LinkedList<T>::push_back(const T& data) {
+void List<T>::push_back(const T& data) {
     if (length != 0) {
         tail = new Node(data, tail, sentinel);
         tail->prev->next = tail;
@@ -176,7 +178,7 @@ void LinkedList<T>::push_back(const T& data) {
 }
 
 template <typename T>
-void LinkedList<T>::push_front(const T& data) {
+void List<T>::push_front(const T& data) {
     if (length != 0) {
         head = new Node(data, nullptr, head);
         head->next->prev = head;
@@ -189,7 +191,7 @@ void LinkedList<T>::push_front(const T& data) {
 }
 
 template <typename T>
-void LinkedList<T>::pop_back() {
+void List<T>::pop_back() {
     Node* new_tail = tail->prev;
     delete tail;
     tail = new_tail;
@@ -204,12 +206,12 @@ void LinkedList<T>::pop_back() {
 }
 
 template <typename T>
-void LinkedList<T>::pop_front() {
+void List<T>::pop_front() {
     Node* new_head = head->next;
     delete head;
     head = new_head;
 
-    if (head != nullptr)
+    if (head != sentinel)
         head->prev = nullptr;
     else
         tail = sentinel = nullptr;
@@ -217,32 +219,32 @@ void LinkedList<T>::pop_front() {
 }
 
 template <typename T>
-typename LinkedList<T>::iterator LinkedList<T>::erase(
-    LinkedList<T>::iterator where) {
+typename List<T>::iterator List<T>::erase(List<T>::iterator where) {
     if (where.ptr == head) {
         pop_front();
         return begin();
-    } else if (where.ptr == tail->prev) {
+    }
+    if (where.ptr == tail->prev) {
         pop_back();
         return --end();
-    } else if (where != end()) {
-        for (auto it = begin(); it != end(); ++it) {
-            if (it == where) {
-                it.ptr->prev->next = it.ptr->next;
-                it.ptr->next->prev = it.ptr->prev;
-                --length;
-                auto tmp = LinkedList<T>::iterator(it.ptr->next);
-                delete it.ptr;
-                return tmp;
-            }
-        }
+    }
+    for (auto it = begin(); it != end(); ++it) {
+        if (it != where)
+            continue;
+        it.ptr->prev->next = it.ptr->next;
+        it.ptr->next->prev = it.ptr->prev;
+        --length;
+        auto tmp = List<T>::iterator(it.ptr->next);
+        delete it.ptr;
+        return tmp;
     }
 }
 
 template <typename T>
-typename LinkedList<T>::iterator LinkedList<T>::erase(
-    LinkedList<T>::iterator first, LinkedList<T>::iterator last) {
-    if (first == last) return first;
+typename List<T>::iterator List<T>::erase(List<T>::iterator first,
+                                          List<T>::iterator last) {
+    if (first == last)
+        return first;
 
     while (first != last) {
         auto current = first.ptr;
@@ -269,12 +271,14 @@ typename LinkedList<T>::iterator LinkedList<T>::erase(
 }
 
 template <typename T>
-LinkedList<T>& LinkedList<T>::operator=(const LinkedList& other) {
-    if (this == &other) return *this;
+List<T>& List<T>::operator=(const List& other) {
+    if (this == &other)
+        return *this;
 
     clear();
     length = other.length;
-    if (length == 0) return *this;
+    if (length == 0)
+        return *this;
 
     head = new Node(other.head->data);
     Node* current = head;
@@ -292,9 +296,10 @@ LinkedList<T>& LinkedList<T>::operator=(const LinkedList& other) {
 }
 
 template <typename T>
-LinkedList<T>& LinkedList<T>::operator=(LinkedList&& other) noexcept {
+List<T>& List<T>::operator=(List&& other) noexcept {
     clear();
-    if (other.length == 0) return *this;
+    if (other.length == 0)
+        return *this;
 
     head = other.head;
     tail = other.tail;
@@ -307,19 +312,24 @@ LinkedList<T>& LinkedList<T>::operator=(LinkedList&& other) noexcept {
 }
 
 template <typename T>
-bool LinkedList<T>::operator==(const LinkedList& other) const {
-    if (length != other.length) return false;
-    if (!length && !other.length) return true;
+bool List<T>::operator==(const List& other) const {
+    if (length != other.length)
+        return false;
+    if (!length && !other.length)
+        return true;
 
     Node* current = head;
     Node* other_current = other.head;
 
     while (current != tail) {
-        if (current->data != other_current->data) return false;
+        if (current->data != other_current->data)
+            return false;
         current = current->next;
         other_current = other_current->next;
     }
     return true;
 }
 
-#endif  // LINKEDLIST_HPP
+}  // namespace ftl
+
+#endif  // FTL_LIST_HPP
