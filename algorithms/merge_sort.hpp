@@ -1,10 +1,10 @@
-#ifndef MERGE_SORT_HPP
-#define MERGE_SORT_HPP
+#ifndef FTL_MERGE_SORT_HPP
+#define FTL_MERGE_SORT_HPP
 
-#include <iterator> // for std::begin/end, std::iterator_traits, std::copy, ...
-#include <vector>   // for std::vector
+#include <iterator>  // for std::begin/end, std::iterator_traits
+#include <vector>    // for std::vector
 
-namespace sorting {
+namespace ftl {
 
 template <typename It>
 void mergeSort(It, It);
@@ -57,6 +57,6 @@ void merge(It beginIt, It midIt, It endIt) {
     std::copy(rightIt, endIt_arr.end(), beginIt);
 }
 
-} // namespace sorting
+}  // namespace ftl
 
-#endif // MERGE_SORT_HPP
+#endif  // FTL_MERGE_SORT_HPP

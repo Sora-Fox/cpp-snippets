@@ -1,9 +1,10 @@
-#ifndef QUICK_SORT_HPP
-#define QUICK_SORT_HPP
+#ifndef FTL_QUICK_SORT_HPP
+#define FTL_QUICK_SORT_HPP
 
-#include <iterator> // for size_t, std::prev, std::next, std::iter_swap, std::size
+#include <iterator>  // for size_t, std::prev, std::next,
+                     // std::iter_swap, std::size
 
-namespace sorting {
+namespace ftl {
 
 template <typename It>
 void quickSort(It, It);
@@ -55,6 +56,6 @@ It partition(It beginIt, It endIt) {
     }
 }
 
-} // namespace sorting
+}  // namespace ftl
 
-#endif // QUICK_SORT_HPP
+#endif  // FTL_QUICK_SORT_HPP

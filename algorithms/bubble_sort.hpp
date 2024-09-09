@@ -1,9 +1,10 @@
-#ifndef BUBBLE_SORT_HPP
-#define BUBBLE_SORT_HPP
+#ifndef FTL_BUBBLE_SORT_HPP
+#define FTL_BUBBLE_SORT_HPP
 
-#include <iterator> // for size_t, std::begin/end, std::iter_swap, std::next
+#include <iterator>  // for size_t, std::begin/end,
+                     // std::iter_swap, std::next
 
-namespace sorting {
+namespace ftl {
 
 template <typename It>
 void bubbleSort(It, It);
@@ -25,10 +26,9 @@ void bubbleSort(T*& arrayPtr, size_t size) {
 template <typename It>
 void bubbleSort(It beginIt, It rightIt) {
     It lastUnsorted = rightIt;
-    bool swapped;
-    do {
+    bool swapped = true;
+    while (swapped) {
         swapped = false;
-
         for (It iter = beginIt; std::next(iter) != lastUnsorted; ++iter) {
             It nextIt = std::next(iter);
             if (*iter > *nextIt) {
@@ -37,9 +37,9 @@ void bubbleSort(It beginIt, It rightIt) {
             }
         }
         --lastUnsorted;
-    } while (swapped);
+    }
 }
 
-} // namespace sorting
+}  // namespace ftl
 
-#endif // BUBBLE_SORT_HPP
+#endif  // FTL_BUBBLE_SORT_HPP
