@@ -27,6 +27,8 @@ public:
     void pop_back();
     void pop_front();
 
+    iterator insert(iterator, const T&);
+
     iterator erase(iterator);
     iterator erase(iterator, iterator);
 
@@ -216,6 +218,29 @@ void List<T>::pop_front() {
     else
         tail = sentinel = nullptr;
     --length;
+}
+template <typename T>
+typename List<T>::iterator List<T>::insert(List<T>::iterator where,
+                                           const T& value) {
+    auto current = where.ptr;
+
+    if (current == nullptr) {
+        head = tail = new Node(value);
+        sentinel = tail->next = new Node(0, tail);
+        where = iterator(head);
+    } else if (current->prev == nullptr) {
+        head = new Node(value, nullptr, head);
+        head->next->prev = head;
+    } else if (current->next == nullptr) {
+        tail = new Node(value, tail, sentinel);
+        sentinel->prev = tail;
+        tail->prev->next = tail;
+    } else {
+        current->prev->next = new Node(value, current->prev, current);
+        current->prev = current->prev->next;
+    }
+    ++length;
+    return itertor(current->prev);
 }
 
 template <typename T>
