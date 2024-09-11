@@ -11,8 +11,8 @@ class List {
 public:
     List() : length(0), head(nullptr), tail(nullptr), sentinel(nullptr) {}
     List(std::initializer_list<T>);
-    List(const List&);
-    List(List&&) noexcept;
+    List(const List &);
+    List(List &&) noexcept;
     ~List() { clear(); }
 
     class iterator;
@@ -21,13 +21,14 @@ public:
     size_t size() const { return length; }
     bool empty() const { return length == 0; }
 
-    void push_back(const T&);
-    void push_front(const T&);
+    void push_back(const T &);
+    void push_front(const T &);
 
     void pop_back();
     void pop_front();
 
-    iterator insert(iterator, const T&);
+    iterator insert(iterator, const T &);
+    iterator insert(iterator, std::initializer_list<T>);
 
     iterator erase(iterator);
     iterator erase(iterator, iterator);
@@ -36,27 +37,27 @@ public:
     iterator end() const { return iterator(sentinel); }
     // TODO add const iterators and reversed iterators
 
-    List<T>& operator=(const List&);
-    List<T>& operator=(List&&) noexcept;
+    List<T> &operator=(const List &);
+    List<T> &operator=(List &&) noexcept;
 
-    bool operator==(const List&) const;
-    bool operator!=(const List& other) const { return !(*this == other); }
+    bool operator==(const List &) const;
+    bool operator!=(const List &other) const { return !(*this == other); }
 
 private:
     struct Node;
 
-    Node* head;
-    Node* tail;
-    Node* sentinel;
+    Node *head;
+    Node *tail;
+    Node *sentinel;
     size_t length;
 
     struct Node {
-        Node(const T& data, Node* prev = nullptr, Node* next = nullptr)
+        Node(const T &data, Node *prev = nullptr, Node *next = nullptr)
             : data(data), prev(prev), next(next) {}
 
         T data;
-        Node* next;
-        Node* prev;
+        Node *next;
+        Node *prev;
     };
 };
 
@@ -68,12 +69,12 @@ public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
-    using pointer = T*;
-    using reference = T&;
+    using pointer = T *;
+    using reference = T &;
 
-    iterator(Node* ptr) : ptr(ptr) {}
+    iterator(Node *ptr) : ptr(ptr) {}
 
-    iterator& operator++() {
+    iterator &operator++() {
         ptr = ptr->next;
         return *this;
     }
@@ -84,7 +85,7 @@ public:
         return tmp;
     }
 
-    iterator& operator--() {
+    iterator &operator--() {
         ptr = ptr->prev;
         return *this;
     }
@@ -95,13 +96,13 @@ public:
         return tmp;
     }
 
-    T& operator*() { return ptr->data; }
+    T &operator*() { return ptr->data; }
 
-    bool operator!=(const iterator& other) const { return ptr != other.ptr; }
-    bool operator==(const iterator& other) const { return ptr == other.ptr; }
+    bool operator!=(const iterator &other) const { return ptr != other.ptr; }
+    bool operator==(const iterator &other) const { return ptr == other.ptr; }
 
 private:
-    Node* ptr;
+    Node *ptr;
 };
 
 template <typename T>
@@ -112,7 +113,7 @@ List<T>::List(std::initializer_list<T> values)
 
     auto iter = values.begin();
     head = new Node(*iter);
-    Node* current = head;
+    Node *current = head;
     ++iter;
 
     for (; iter != values.end(); ++iter) {
@@ -125,12 +126,12 @@ List<T>::List(std::initializer_list<T> values)
 }
 
 template <typename T>
-List<T>::List(const List& other)
+List<T>::List(const List &other)
     : length(other.length), head(nullptr), tail(nullptr), sentinel(nullptr) {
     if (length != 0) {
         head = new Node(other.head->data);
-        Node* current = head;
-        Node* other_current = other.head->next;
+        Node *current = head;
+        Node *other_current = other.head->next;
         while (other_current != other.sentinel) {
             current->next = new Node(other_current->data, current);
             current = current->next;
@@ -143,7 +144,7 @@ List<T>::List(const List& other)
 }
 
 template <typename T>
-List<T>::List(List&& other) noexcept {
+List<T>::List(List &&other) noexcept {
     head = other.head;
     tail = other.tail;
     sentinel = other.sentinel;
@@ -155,7 +156,7 @@ List<T>::List(List&& other) noexcept {
 
 template <typename T>
 void List<T>::clear() {
-    Node* current = head;
+    Node *current = head;
     while (current != sentinel) {
         current = current->next;
         delete current->prev;
@@ -166,7 +167,7 @@ void List<T>::clear() {
 }
 
 template <typename T>
-void List<T>::push_back(const T& data) {
+void List<T>::push_back(const T &data) {
     if (length != 0) {
         tail = new Node(data, tail, sentinel);
         tail->prev->next = tail;
@@ -180,7 +181,7 @@ void List<T>::push_back(const T& data) {
 }
 
 template <typename T>
-void List<T>::push_front(const T& data) {
+void List<T>::push_front(const T &data) {
     if (length != 0) {
         head = new Node(data, nullptr, head);
         head->next->prev = head;
@@ -194,7 +195,7 @@ void List<T>::push_front(const T& data) {
 
 template <typename T>
 void List<T>::pop_back() {
-    Node* new_tail = tail->prev;
+    Node *new_tail = tail->prev;
     delete tail;
     tail = new_tail;
 
@@ -209,7 +210,7 @@ void List<T>::pop_back() {
 
 template <typename T>
 void List<T>::pop_front() {
-    Node* new_head = head->next;
+    Node *new_head = head->next;
     delete head;
     head = new_head;
 
@@ -221,7 +222,7 @@ void List<T>::pop_front() {
 }
 template <typename T>
 typename List<T>::iterator List<T>::insert(List<T>::iterator where,
-                                           const T& value) {
+                                           const T &value) {
     auto current = where.ptr;
 
     if (current == nullptr) {
@@ -240,7 +241,33 @@ typename List<T>::iterator List<T>::insert(List<T>::iterator where,
         current->prev = current->prev->next;
     }
     ++length;
-    return itertor(current->prev);
+    return iterator(current->prev);
+}
+
+template <typename T>
+typename List<T>::iterator List<T>::insert(List<T>::iterator where,
+                                           std::initializer_list<T> values) {
+    length += values.size();
+    auto current = where.ptr;
+
+    if (current != head) {
+        for (const T &value : values) {
+            current->prev->next = new Node(value, current->prev, current);
+            current->prev = current->prev->next;
+        }
+        if (current == sentinel)
+            tail = current->prev;
+    } else {
+        head = new Node(*values.begin(), nullptr, current);
+        current->prev = head;
+        auto it = values.begin();
+        ++it;
+        for (; it != values.end(); ++it) {
+            current->prev->next = new Node(*it, current->prev, current);
+            current->prev = current->prev->next;
+        }
+    }
+    return iterator(current->prev);
 }
 
 template <typename T>
@@ -296,7 +323,7 @@ typename List<T>::iterator List<T>::erase(List<T>::iterator first,
 }
 
 template <typename T>
-List<T>& List<T>::operator=(const List& other) {
+List<T> &List<T>::operator=(const List &other) {
     if (this == &other)
         return *this;
 
@@ -306,8 +333,8 @@ List<T>& List<T>::operator=(const List& other) {
         return *this;
 
     head = new Node(other.head->data);
-    Node* current = head;
-    Node* other_current = other.head->next;
+    Node *current = head;
+    Node *other_current = other.head->next;
 
     while (other_current != other.sentinel) {
         current->next = new Node(other_current->data, current);
@@ -321,7 +348,7 @@ List<T>& List<T>::operator=(const List& other) {
 }
 
 template <typename T>
-List<T>& List<T>::operator=(List&& other) noexcept {
+List<T> &List<T>::operator=(List &&other) noexcept {
     clear();
     if (other.length == 0)
         return *this;
@@ -337,14 +364,14 @@ List<T>& List<T>::operator=(List&& other) noexcept {
 }
 
 template <typename T>
-bool List<T>::operator==(const List& other) const {
+bool List<T>::operator==(const List &other) const {
     if (length != other.length)
         return false;
     if (!length && !other.length)
         return true;
 
-    Node* current = head;
-    Node* other_current = other.head;
+    Node *current = head;
+    Node *other_current = other.head;
 
     while (current != tail) {
         if (current->data != other_current->data)
