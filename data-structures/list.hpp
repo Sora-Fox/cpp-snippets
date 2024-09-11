@@ -18,6 +18,8 @@ public:
     class iterator;
 
     void clear();
+    void sort();
+
     size_t size() const { return length; }
     bool empty() const { return length == 0; }
 
@@ -51,6 +53,9 @@ private:
     Node *sentinel;
     size_t length;
 
+    void quickSort(iterator, iterator);
+    iterator partition(iterator, iterator);
+
     struct Node {
         Node(const T &data, Node *prev = nullptr, Node *next = nullptr)
             : data(data), prev(prev), next(next) {}
@@ -72,7 +77,7 @@ public:
     using pointer = T *;
     using reference = T &;
 
-    iterator(Node *ptr) : ptr(ptr) {}
+    iterator(Node *ptr = nullptr) : ptr(ptr) {}
 
     iterator &operator++() {
         ptr = ptr->next;
@@ -220,6 +225,39 @@ void List<T>::pop_front() {
         tail = sentinel = nullptr;
     --length;
 }
+
+template <typename T>
+void List<T>::sort() {
+    if (length > 1)
+        quickSort(begin(), end());
+}
+
+template <typename T>
+void List<T>::quickSort(iterator left, iterator right) {
+    if (left != right && left.ptr->next != right.ptr) {
+        iterator middle = partition(left, right);
+        quickSort(left, middle);
+        quickSort(middle, right);
+    }
+}
+
+template <typename T>
+typename List<T>::iterator List<T>::partition(iterator left, iterator right) {
+    T pivot = right.ptr->prev->data;
+    --right;
+    while (true) {
+        while (*left < pivot)
+            ++left;
+        while (*right > pivot)
+            --right;
+        if (left == right || left.ptr == right.ptr->next)
+            return left;
+        std::swap(left.ptr->data, right.ptr->data);
+        ++left;
+        --right;
+    }
+}
+
 template <typename T>
 typename List<T>::iterator List<T>::insert(List<T>::iterator where,
                                            const T &value) {
