@@ -15,6 +15,7 @@ public:
     List(List &&) noexcept;
     ~List() { clear(); }
 
+    class const_iterator;
     class iterator;
 
     void clear();
@@ -35,9 +36,12 @@ public:
     iterator erase(iterator);
     iterator erase(iterator, iterator);
 
+    const_iterator cbegin() const { return const_iterator(head); }
+    const_iterator cend() const { return const_iterator(sentinel); }
+
     iterator begin() const { return iterator(head); }
     iterator end() const { return iterator(sentinel); }
-    // TODO add const iterators and reversed iterators
+    // TODO reversed iterators
 
     List<T> &operator=(const List &);
     List<T> &operator=(List &&) noexcept;
@@ -67,7 +71,7 @@ private:
 };
 
 template <typename T>
-class List<T>::iterator {
+class List<T>::const_iterator {
 public:
     friend class List;
 
@@ -77,37 +81,49 @@ public:
     using pointer = T *;
     using reference = T &;
 
-    iterator(Node *ptr = nullptr) : ptr(ptr) {}
+    const_iterator(Node *ptr = nullptr) : ptr(ptr) {}
 
-    iterator &operator++() {
+    const_iterator &operator++() {
         ptr = ptr->next;
         return *this;
     }
 
-    iterator operator++(int) {
-        iterator tmp(ptr);
+    const_iterator operator++(int) {
+        const_iterator tmp(ptr);
         ptr = ptr->next;
         return tmp;
     }
 
-    iterator &operator--() {
+    const_iterator &operator--() {
         ptr = ptr->prev;
         return *this;
     }
 
-    iterator operator--(int) {
-        iterator tmp(ptr);
+    const_iterator operator--(int) {
+        const_iterator tmp(ptr);
         ptr = ptr->prev;
         return tmp;
     }
 
-    T &operator*() { return ptr->data; }
+    const T &operator*() { return ptr->data; }
 
-    bool operator!=(const iterator &other) const { return ptr != other.ptr; }
-    bool operator==(const iterator &other) const { return ptr == other.ptr; }
+    bool operator!=(const const_iterator &other) const {
+        return ptr != other.ptr;
+    }
+    bool operator==(const const_iterator &other) const {
+        return ptr == other.ptr;
+    }
 
-private:
+protected:
     Node *ptr;
+};
+
+template <typename T>
+class List<T>::iterator : public List<T>::const_iterator {
+public:
+    iterator(Node *ptr = nullptr) : List<T>::const_iterator(ptr) {}
+
+    T &operator*() { return List<T>::const_iterator::ptr->data; }
 };
 
 template <typename T>
