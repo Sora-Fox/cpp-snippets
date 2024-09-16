@@ -2,7 +2,7 @@
 #define FTL_LIST_HPP
 
 #include <initializer_list>
-#include <iterator>
+#include <iterator>  // for std::bidirectional_iterator_tag
 
 namespace ftl {
 
@@ -36,11 +36,11 @@ public:
     iterator erase(iterator);
     iterator erase(iterator, iterator);
 
-    const_iterator cbegin() const { return const_iterator(head); }
-    const_iterator cend() const { return const_iterator(sentinel); }
+    const_iterator cbegin() const { return const_iterator(head, 0); }
+    const_iterator cend() const { return const_iterator(sentinel, length + 1); }
 
-    iterator begin() const { return iterator(head); }
-    iterator end() const { return iterator(sentinel); }
+    iterator begin() const { return iterator(head, 0); }
+    iterator end() const { return iterator(sentinel, length + 1); }
     // TODO reversed iterators
 
     List<T> &operator=(const List &);
@@ -81,31 +81,35 @@ public:
     using pointer = T *;
     using reference = T &;
 
-    const_iterator(Node *ptr = nullptr) : ptr(ptr) {}
-
     const_iterator &operator++() {
         ptr = ptr->next;
+        ++position;
         return *this;
     }
-
     const_iterator operator++(int) {
         const_iterator tmp(ptr);
         ptr = ptr->next;
+        ++position;
         return tmp;
     }
 
     const_iterator &operator--() {
         ptr = ptr->prev;
+        --position;
         return *this;
     }
-
     const_iterator operator--(int) {
         const_iterator tmp(ptr);
         ptr = ptr->prev;
+        --position;
         return tmp;
     }
 
     const T &operator*() { return ptr->data; }
+
+    size_t operator-(const const_iterator &other) const {
+        return position - other.position;
+    }
 
     bool operator!=(const const_iterator &other) const {
         return ptr != other.ptr;
@@ -113,17 +117,31 @@ public:
     bool operator==(const const_iterator &other) const {
         return ptr == other.ptr;
     }
+    bool operator<(const const_iterator &other) const {
+        return position < other.position;
+    }
+    bool operator>(const const_iterator &other) const {
+        return other.position < position;
+    }
 
 protected:
     Node *ptr;
+    size_t position;
+
+    const_iterator(Node *ptr = nullptr, size_t position = 0)
+        : ptr(ptr), position(position) {}
 };
 
 template <typename T>
 class List<T>::iterator : public List<T>::const_iterator {
 public:
-    iterator(Node *ptr = nullptr) : List<T>::const_iterator(ptr) {}
+    friend class List;
 
     T &operator*() { return List<T>::const_iterator::ptr->data; }
+
+private:
+    iterator(Node *ptr = nullptr, size_t position = 0)
+        : List<T>::const_iterator(ptr, position) {}
 };
 
 template <typename T>
