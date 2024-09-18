@@ -36,6 +36,8 @@ public:
     iterator erase(iterator);
     iterator erase(iterator, iterator);
 
+    void remove(const T &);
+
     const_iterator cbegin() const { return const_iterator(head, 0); }
     const_iterator cend() const { return const_iterator(sentinel, length + 1); }
 
@@ -392,6 +394,21 @@ typename List<T>::iterator List<T>::erase(List<T>::iterator first,
         --length;
     }
     return first;
+}
+
+template <typename T>
+void List<T>::remove(const T &value) {
+    for (auto it = begin(); it != end(); ++it) {
+        if (*it != value)
+            continue;
+
+        it.ptr->prev->next = it.ptr->next;
+        it.ptr->next->prev = it.ptr->prev;
+        --length;
+        auto temp = it.ptr;
+        it.ptr = it.ptr->prev;
+        delete temp;
+    }
 }
 
 template <typename T>
