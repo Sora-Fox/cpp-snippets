@@ -1,8 +1,9 @@
 #ifndef FTL_BSTREE_HPP
 #define FTL_BSTREE_HPP
 
-#include <cstddef>
 #include <initializer_list>
+#include <ostream>
+#include <string>
 
 namespace ftl {
 
@@ -30,6 +31,10 @@ public:
     size_t size() const { return m_size; }
     bool empty() const { return m_size == 0; }
 
+    T* find(const T&);
+
+    void show(std::ostream&, std::string = " ");
+
 private:
     struct Node;
 
@@ -40,6 +45,13 @@ private:
 
     Node* insert(Node*, const T&);
     Node* remove(Node*, const T&);
+
+    Node* max(Node*) const;
+    Node* min(Node*) const;
+
+    Node* find(Node*, const T&);
+
+    void show(std::ostream&, Node*, std::string);
 };
 
 template <typename T>
@@ -90,17 +102,17 @@ void Tree<T>::clear(Node* root) {
 template <typename T>
 void Tree<T>::insert(const T& data) {
     m_root = insert(m_root, data);
-    ++m_size;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::insert(Node* root, const T& data) {
     if (root == nullptr) {
+        ++m_size;
         return new Node(data);
     }
     if (data < root->data) {
         root->left = insert(root->left, data);
-    } else {
+    } else if (data > root->data) {
         root->right = insert(root->right, data);
     }
     return root;
@@ -109,40 +121,98 @@ typename Tree<T>::Node* Tree<T>::insert(Node* root, const T& data) {
 template <typename T>
 void Tree<T>::remove(const T& data) {
     m_root = remove(m_root, data);
-    --m_size;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::remove(Node* root, const T& data) {
-    if (root->data == data) {
-        Node* tmp = root->right != nullptr ? root->right : root->left;
-        delete root;
-        return tmp;
+    if (root == nullptr) {
+        return nullptr;
     }
     if (data < root->data) {
         root->left = remove(root->left, data);
-    } else {
+    } else if (data > root->data) {
         root->right = remove(root->right, data);
+    } else if (root->left != nullptr && root->right != nullptr) {
+        Node* minNode = min(root->right);
+        root->data = std::move(minNode->data);
+        root->right = remove(root->right, minNode->data);
+    } else {
+        Node* tmp = (root->left != nullptr) ? root->left : root->right;
+        --m_size;
+        delete root;
+        return tmp;
     }
     return root;
 }
 
 template <typename T>
 const T& Tree<T>::max() const {
-    Node* max = m_root;
-    while (max->right != nullptr) {
-        max = max->right;
-    }
-    return max->data;
+    return max(m_root)->data;
 }
 
 template <typename T>
 const T& Tree<T>::min() const {
-    Node* min = m_root;
-    while (min->left != nullptr) {
-        min = min->left;
+    return min(m_root)->data;
+}
+
+template <typename T>
+typename Tree<T>::Node* Tree<T>::max(Node* root) const {
+    if (root->right != nullptr) {
+        return max(root->right);
+    } else {
+        return root;
     }
-    return min->data;
+}
+
+template <typename T>
+typename Tree<T>::Node* Tree<T>::min(Node* root) const {
+    if (root->left != nullptr) {
+        return min(root->left);
+    } else {
+        return root;
+    }
+}
+
+template <typename T>
+T* Tree<T>::find(const T& data) {
+    if (m_root != nullptr) {
+        return &find(m_root, data)->data;
+    }
+}
+
+template <typename T>
+typename Tree<T>::Node* Tree<T>::find(Node* root, const T& data) {
+    if (root->data == data) {
+        return root;
+    } else if (root->data > data && root->right != nullptr) {
+        return find(root->right, data);
+    } else if (root->left != nullptr) {
+        return find(root->left, data);
+    } else {
+        return nullptr;
+    }
+}
+
+template <typename T>
+void Tree<T>::show(std::ostream& os, std::string separator) {
+    if (m_root != nullptr) {
+        show(os, m_root, separator);
+    }
+}
+
+template <typename T>
+void Tree<T>::show(std::ostream& os, Node* root, std::string separator) {
+    if (root->left != nullptr) {
+        show(os, root->left, separator);
+    }
+    if (root != min(m_root)) {
+        os << separator << root->data;
+    } else {
+        os << root->data;
+    }
+    if (root->right != nullptr) {
+        show(os, root->right, separator);
+    }
 }
 
 }  // namespace ftl
