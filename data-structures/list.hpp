@@ -24,6 +24,9 @@ public:
     size_t size() const { return length; }
     bool empty() const { return length == 0; }
 
+    T &front() const { return head->data; }
+    T &back() const { return tail->data; }
+
     void push_back(const T &);
     void push_front(const T &);
 
@@ -32,6 +35,10 @@ public:
 
     iterator insert(iterator, const T &);
     iterator insert(iterator, std::initializer_list<T>);
+
+    void emplace(iterator, T &&);
+    void emplace_front(T &&data) { emplace(begin(), data); }
+    void emplace_back(T &&data) { emplace(end(), data); }
 
     iterator erase(iterator);
     iterator erase(iterator, iterator);
@@ -342,6 +349,18 @@ typename List<T>::iterator List<T>::insert(List<T>::iterator where,
         }
     }
     return iterator(current->prev);
+}
+
+template <typename T>
+void List<T>::emplace(List<T>::iterator where, T &&data) {
+    ++length;
+    if (head != nullptr) {
+        Node *current = where.ptr;
+        current->prev->next = new Node(data, current->prev, current);
+        current->prev = current->prev->next;
+        return;
+    }
+    head = tail = new Node(data);
 }
 
 template <typename T>
