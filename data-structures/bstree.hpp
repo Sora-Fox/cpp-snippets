@@ -105,9 +105,19 @@ void Tree<T>::clear(Node* root) {
     if (root == nullptr) {
         return;
     }
-    clear(root->left);
-    clear(root->right);
-    delete root;
+    std::queue<Node*> nodes;
+    nodes.push(root);
+    while (!nodes.empty()) {
+        Node* current = nodes.front();
+        nodes.pop();
+        if (current->left) {
+            nodes.push(current->left);
+        }
+        if (current->right) {
+            nodes.push(current->right);
+        }
+        delete current;
+    }
 }
 
 
