@@ -31,7 +31,7 @@ public:
     size_t size() const { return m_size; }
     bool empty() const { return m_size == 0; }
 
-    T* find(const T&);
+    const T* find(const T&);
 
     void showReversed(std::ostream&, std::string = " ");
     void show(std::ostream&, std::string = " ");
@@ -89,6 +89,7 @@ void Tree<T>::clear() {
     if (m_root != nullptr) {
         clear(m_root);
         m_size = 0;
+        m_root = nullptr;
     }
 }
 
@@ -181,22 +182,21 @@ typename Tree<T>::Node* Tree<T>::min(Node* root) const {
 }
 
 template <typename T>
-T* Tree<T>::find(const T& data) {
-    if (m_root != nullptr) {
-        return &find(m_root, data)->data;
-    }
+const T* Tree<T>::find(const T& data) {
+    Node* result = find(m_root, data);
+    return result ? &result->data : nullptr;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::find(Node* root, const T& data) {
-    if (root->data == data) {
-        return root;
-    } else if (root->data > data && root->right != nullptr) {
+    if (root == nullptr) {
+        return nullptr;
+    } else if (data > root->data && root->right) {
         return find(root->right, data);
-    } else if (root->left != nullptr) {
+    } else if (data < root->data && root->left) {
         return find(root->left, data);
     } else {
-        return nullptr;
+        return root;
     }
 }
 
@@ -240,18 +240,18 @@ void Tree<T>::show(std::ostream& os, Node* root, std::string separator) {
 template <typename T>
 void Tree<T>::showAsTree(std::ostream& os, std::string separator,
                          std::string end) {
-    std::queue<Node*> test;
-    test.push(m_root);
-    while (!test.empty()) {
-        size_t levelSize = test.size();
+    std::queue<Node*> nodes;
+    nodes.push(m_root);
+    while (!nodes.empty()) {
+        size_t levelSize = nodes.size();
         for (size_t i = 0; i < levelSize; ++i) {
-            Node* current = test.front();
-            test.pop();
+            Node* current = nodes.front();
+            nodes.pop();
             os << current->data;
             if (current->left != nullptr)
-                test.push(current->left);
+                nodes.push(current->left);
             if (current->right != nullptr)
-                test.push(current->right);
+                nodes.push(current->right);
             if (i != levelSize - 1)
                 os << separator;
         }
