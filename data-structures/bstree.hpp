@@ -3,6 +3,7 @@
 
 #include <initializer_list>
 #include <ostream>
+#include <queue>
 #include <string>
 
 namespace ftl {
@@ -18,7 +19,6 @@ public:
 
     Tree& operator=(const Tree&) = delete;
     Tree& operator=(Tree&&);
-
     void clear();
 
     void insert(const T& data);
@@ -33,7 +33,9 @@ public:
 
     T* find(const T&);
 
+    void showReversed(std::ostream&, std::string = " ");
     void show(std::ostream&, std::string = " ");
+    void showAsTree(std::ostream&, std::string = " ", std::string = "\n");
 
 private:
     struct Node;
@@ -51,6 +53,7 @@ private:
 
     Node* find(Node*, const T&);
 
+    void showReversed(std::ostream&, Node*, std::string);
     void show(std::ostream&, Node*, std::string);
 };
 
@@ -147,12 +150,16 @@ typename Tree<T>::Node* Tree<T>::remove(Node* root, const T& data) {
 
 template <typename T>
 const T& Tree<T>::max() const {
-    return max(m_root)->data;
+    if (m_root != nullptr) {
+        return max(m_root)->data;
+    }
 }
 
 template <typename T>
 const T& Tree<T>::min() const {
-    return min(m_root)->data;
+    if (m_root != nullptr) {
+        return min(m_root)->data;
+    }
 }
 
 template <typename T>
@@ -194,6 +201,25 @@ typename Tree<T>::Node* Tree<T>::find(Node* root, const T& data) {
 }
 
 template <typename T>
+void Tree<T>::showReversed(std::ostream& os, std::string separator) {
+    if (m_root != nullptr) {
+        showReversed(os, m_root, separator);
+    }
+}
+
+template <typename T>
+void Tree<T>::showReversed(std::ostream& os, Node* root,
+                           std::string separator) {
+    if (root->right != nullptr) {
+        showReversed(os, root->right, separator);
+    }
+    os << (root == max(m_root) ? "" : separator) << root->data;
+    if (root->left != nullptr) {
+        showReversed(os, root->left, separator);
+    }
+}
+
+template <typename T>
 void Tree<T>::show(std::ostream& os, std::string separator) {
     if (m_root != nullptr) {
         show(os, m_root, separator);
@@ -205,13 +231,31 @@ void Tree<T>::show(std::ostream& os, Node* root, std::string separator) {
     if (root->left != nullptr) {
         show(os, root->left, separator);
     }
-    if (root != min(m_root)) {
-        os << separator << root->data;
-    } else {
-        os << root->data;
-    }
+    os << (root == min(m_root) ? "" : separator) << root->data;
     if (root->right != nullptr) {
         show(os, root->right, separator);
+    }
+}
+
+template <typename T>
+void Tree<T>::showAsTree(std::ostream& os, std::string separator,
+                         std::string end) {
+    std::queue<Node*> test;
+    test.push(m_root);
+    while (!test.empty()) {
+        size_t levelSize = test.size();
+        for (size_t i = 0; i < levelSize; ++i) {
+            Node* current = test.front();
+            test.pop();
+            os << current->data;
+            if (current->left != nullptr)
+                test.push(current->left);
+            if (current->right != nullptr)
+                test.push(current->right);
+            if (i != levelSize - 1)
+                os << separator;
+        }
+        os << end;
     }
 }
 
