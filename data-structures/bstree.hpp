@@ -24,14 +24,13 @@ public:
     void insert(const T& data);
     void remove(const T& data);
 
-    const T& max() const;
-    const T& min() const;
+    const T* max() const;
+    const T* min() const;
+    const T* root() const;
+    const T* find(const T&) const;
 
-    const T& root() const { return m_root->data; }
     size_t size() const { return m_size; }
     bool empty() const { return m_size == 0; }
-
-    const T* find(const T&);
 
     void showReversed(std::ostream&, std::string = " ");
     void show(std::ostream&, std::string = " ");
@@ -68,6 +67,13 @@ struct Tree<T>::Node {
 };
 
 template <typename T>
+Tree<T>::Tree(std::initializer_list<T> values) {
+    for (auto i = values.begin(); i != values.end(); ++i) {
+        insert(*i);
+    }
+}
+
+template <typename T>
 Tree<T>::Tree(Tree&& other) : m_root(other.m_root), m_size(other.m_size) {
     other.m_root = nullptr;
     other.m_size = 0;
@@ -75,6 +81,9 @@ Tree<T>::Tree(Tree&& other) : m_root(other.m_root), m_size(other.m_size) {
 
 template <typename T>
 Tree<T>& Tree<T>::operator=(Tree&& other) {
+    if (this == &other) {
+        return *this;
+    }
     clear();
     m_root = other.m_root;
     m_size = other.m_size;
@@ -86,11 +95,9 @@ Tree<T>& Tree<T>::operator=(Tree&& other) {
 
 template <typename T>
 void Tree<T>::clear() {
-    if (m_root != nullptr) {
-        clear(m_root);
-        m_size = 0;
-        m_root = nullptr;
-    }
+    clear(m_root);
+    m_size = 0;
+    m_root = nullptr;
 }
 
 template <typename T>
@@ -102,6 +109,7 @@ void Tree<T>::clear(Node* root) {
     clear(root->right);
     delete root;
 }
+
 
 template <typename T>
 void Tree<T>::insert(const T& data) {
@@ -138,7 +146,7 @@ typename Tree<T>::Node* Tree<T>::remove(Node* root, const T& data) {
         root->right = remove(root->right, data);
     } else if (root->left != nullptr && root->right != nullptr) {
         Node* minNode = min(root->right);
-        root->data = std::move(minNode->data);
+        root->data = minNode->data;
         root->right = remove(root->right, minNode->data);
     } else {
         Node* tmp = (root->left != nullptr) ? root->left : root->right;
@@ -150,41 +158,42 @@ typename Tree<T>::Node* Tree<T>::remove(Node* root, const T& data) {
 }
 
 template <typename T>
-const T& Tree<T>::max() const {
-    if (m_root != nullptr) {
-        return max(m_root)->data;
-    }
+const T* Tree<T>::root() const {
+    return m_root ? &m_root->data : nullptr;
 }
 
 template <typename T>
-const T& Tree<T>::min() const {
-    if (m_root != nullptr) {
-        return min(m_root)->data;
-    }
+const T* Tree<T>::max() const {
+    Node* result = max(m_root);
+    return result ? &result->data : nullptr;
+}
+
+template <typename T>
+const T* Tree<T>::min() const {
+    Node* result = min(m_root);
+    return result ? &result->data : nullptr;
+}
+
+template <typename T>
+const T* Tree<T>::find(const T& data) const {
+    Node* result = find(m_root, data);
+    return result ? &result->data : nullptr;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::max(Node* root) const {
-    if (root->right != nullptr) {
+    if (root && root->right) {
         return max(root->right);
-    } else {
-        return root;
     }
+    return root;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::min(Node* root) const {
-    if (root->left != nullptr) {
+    if (root && root->left) {
         return min(root->left);
-    } else {
-        return root;
     }
-}
-
-template <typename T>
-const T* Tree<T>::find(const T& data) {
-    Node* result = find(m_root, data);
-    return result ? &result->data : nullptr;
+    return root;
 }
 
 template <typename T>
