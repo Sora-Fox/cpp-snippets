@@ -13,11 +13,11 @@ class Tree {
 public:
     Tree() : m_root(nullptr), m_size(0) {}
     Tree(std::initializer_list<T>);
-    Tree(const Tree&) = delete;
+    Tree(const Tree&);
     Tree(Tree&&);
     ~Tree() { clear(); }
 
-    Tree& operator=(const Tree&) = delete;
+    Tree& operator=(const Tree&);
     Tree& operator=(Tree&&);
     void clear();
 
@@ -71,6 +71,57 @@ Tree<T>::Tree(std::initializer_list<T> values) {
     for (auto i = values.begin(); i != values.end(); ++i) {
         insert(*i);
     }
+}
+
+template <typename T>
+Tree<T>::Tree(const Tree& other) : m_root(nullptr), m_size(0) {
+    if (other.m_root == nullptr) {
+        return;
+    }
+    std::queue<Node*> nodes;
+    nodes.push(other.m_root);
+    while (!nodes.empty()) {
+        size_t levelSize = nodes.size();
+        for (size_t i = 0; i < levelSize; ++i) {
+            Node* current = nodes.front();
+            insert(current->data);
+            nodes.pop();
+            if (current->left) {
+                nodes.push(current->left);
+            }
+            if (current->right) {
+                nodes.push(current->right);
+            }
+        }
+    }
+}
+
+template <typename T>
+Tree<T>& Tree<T>::operator=(const Tree& other) {
+    if (this == &other) {
+        return *this;
+    }
+    clear();
+    if (other.m_root == nullptr) {
+        return *this;
+    }
+    std::queue<Node*> nodes;
+    nodes.push(other.m_root);
+    while (!nodes.empty()) {
+        size_t levelSize = nodes.size();
+        for (size_t i = 0; i < levelSize; ++i) {
+            Node* current = nodes.front();
+            insert(current->data);
+            nodes.pop();
+            if (current->left) {
+                nodes.push(current->left);
+            }
+            if (current->right) {
+                nodes.push(current->right);
+            }
+        }
+    }
+    return *this;
 }
 
 template <typename T>
