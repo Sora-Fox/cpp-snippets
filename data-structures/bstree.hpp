@@ -12,7 +12,7 @@ template <typename T>
 class Tree {
 public:
     Tree() : m_root(nullptr), m_size(0) {}
-    Tree(std::initializer_list<T>);
+    Tree(const std::initializer_list<T>&);
     Tree(const Tree&);
     Tree(Tree&&);
     ~Tree() { clear(); }
@@ -67,7 +67,8 @@ struct Tree<T>::Node {
 };
 
 template <typename T>
-Tree<T>::Tree(std::initializer_list<T> values) {
+Tree<T>::Tree(const std::initializer_list<T>& values)
+    : m_root(nullptr), m_size(0) {
     for (auto i = values.begin(); i != values.end(); ++i) {
         insert(*i);
     }
