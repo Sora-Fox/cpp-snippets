@@ -120,7 +120,6 @@ void Tree<T>::clear(Node* root) {
     }
 }
 
-
 template <typename T>
 void Tree<T>::insert(const T& data) {
     m_root = insert(m_root, data);
@@ -150,16 +149,19 @@ typename Tree<T>::Node* Tree<T>::remove(Node* root, const T& data) {
     if (root == nullptr) {
         return nullptr;
     }
+    Node* right = root->right;
+    Node* left = root->left;
+
     if (data < root->data) {
-        root->left = remove(root->left, data);
+        left = remove(left, data);
     } else if (data > root->data) {
-        root->right = remove(root->right, data);
-    } else if (root->left != nullptr && root->right != nullptr) {
-        Node* minNode = min(root->right);
+        right = remove(right, data);
+    } else if (left && right) {
+        Node* minNode = min(right);
         root->data = minNode->data;
-        root->right = remove(root->right, minNode->data);
+        right = remove(right, minNode->data);
     } else {
-        Node* tmp = (root->left != nullptr) ? root->left : root->right;
+        Node* tmp = left ? left : right;
         --m_size;
         delete root;
         return tmp;
@@ -192,49 +194,36 @@ const T* Tree<T>::find(const T& data) const {
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::max(Node* root) const {
-    if (root && root->right) {
-        return max(root->right);
+    while (root->right != nullptr) {
+        root = root->right;
     }
     return root;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::min(Node* root) const {
-    if (root && root->left) {
-        return min(root->left);
+    while (root->left != nullptr) {
+        root = root->left;
     }
     return root;
 }
 
 template <typename T>
 typename Tree<T>::Node* Tree<T>::find(Node* root, const T& data) {
-    if (root == nullptr) {
-        return nullptr;
-    } else if (data > root->data && root->right) {
-        return find(root->right, data);
-    } else if (data < root->data && root->left) {
-        return find(root->left, data);
-    } else {
-        return root;
+    while (root && root->data != data) {
+        if (data > root->data) {
+            root = root->right;
+        } else {
+            root == root->left;
+        }
     }
+    return root;
 }
 
 template <typename T>
 void Tree<T>::showReversed(std::ostream& os, std::string separator) {
     if (m_root != nullptr) {
         showReversed(os, m_root, separator);
-    }
-}
-
-template <typename T>
-void Tree<T>::showReversed(std::ostream& os, Node* root,
-                           std::string separator) {
-    if (root->right != nullptr) {
-        showReversed(os, root->right, separator);
-    }
-    os << (root == max(m_root) ? "" : separator) << root->data;
-    if (root->left != nullptr) {
-        showReversed(os, root->left, separator);
     }
 }
 
@@ -246,12 +235,20 @@ void Tree<T>::show(std::ostream& os, std::string separator) {
 }
 
 template <typename T>
-void Tree<T>::show(std::ostream& os, Node* root, std::string separator) {
-    if (root->left != nullptr) {
-        show(os, root->left, separator);
+void Tree<T>::showReversed(std::ostream& os, Node* root,
+                           std::string separator) {
+    if (root != nullptr) {
+        showReversed(os, root->right, separator);
+        os << (root == max(m_root) ? "" : separator) << root->data;
+        showReversed(os, root->left, separator);
     }
-    os << (root == min(m_root) ? "" : separator) << root->data;
-    if (root->right != nullptr) {
+}
+
+template <typename T>
+void Tree<T>::show(std::ostream& os, Node* root, std::string separator) {
+    if (root != nullptr) {
+        show(os, root->left, separator);
+        os << (root == min(m_root) ? "" : separator) << root->data;
         show(os, root->right, separator);
     }
 }
