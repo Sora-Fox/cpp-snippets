@@ -71,22 +71,17 @@ ftl::Matrix<T>::Matrix(const Matrix& rhs) :
 template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(const Matrix& rhs)
 {
-  if (capacity_ >= rhs.rows_ * rhs.columns_) {
-    for (; size_ != 0; --size_) {
-      (data_ + size_)->~T();
-    }
-    for (; size_ != rhs.size_; ++size_) {
-      new (data_ + size_) T { rhs.data_[size_] };
-    }
-  } else {
-    for (; size_ != 0; --size_) {
-      (data_ + size_)->~T();
-    }
-    operator delete(data_);
-    data_ = static_cast<T*>(operator new(sizeof(T) * rhs.size_));
-    for (; size_ != rhs.size_; ++size_) {
-      new (data_ + size_) T { rhs.data_[size_] };
-    }
+  if (capacity_ < rhs.rows_ * rhs.columns_) {
+    Matrix tmp { rhs };
+    std::swap(*this, tmp);
+    return *this;
+  }
+  for (; size_ != 0; --size_) {
+    (data_ + size_)->~T();
+  }
+  (data_)->~T();
+  for (; size_ != rhs.size_; ++size_) {
+    new (data_ + size_) T { rhs.data_[size_] };
   }
   rows_ = rhs.rows_;
   columns_ = rhs.columns_;
@@ -104,9 +99,13 @@ ftl::Matrix<T>::Matrix(Matrix&& rhs) noexcept :
 template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(Matrix&& rhs) noexcept
 {
+  if (this == &rhs) {
+    return *this;
+  }
   for (; size_ != 0; --size_) {
     (data_ + size_)->~T();
   }
+  data_->~T();
   operator delete(data_);
   data_ = std::exchange(rhs.data_, nullptr);
   size_ = std::exchange(rhs.size_, 0);
