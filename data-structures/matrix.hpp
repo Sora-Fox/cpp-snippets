@@ -1,6 +1,7 @@
 #ifndef FTL_MATRIX_HPP
 #define FTL_MATRIX_HPP
 
+#include <stdexcept>
 #include <utility>
 #include "matrix_buffer.hpp"
 
@@ -26,6 +27,10 @@ namespace ftl {
 
     const T* operator[](size_type row) const { return data_ + row * columns_; }
     T* operator[](size_type row) { return data_ + row * columns_; }
+    Matrix& operator+=(const Matrix&) &;
+    Matrix& operator-=(const Matrix&) &;
+
+    void fill(const T&);
 
     size_type rows() const noexcept { return rows_; }
     size_type columns() const noexcept { return columns_; }
@@ -76,11 +81,10 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator=(const Matrix& rhs)
     std::swap(*this, tmp);
     return *this;
   }
-  for (; size_ != 0; --size_) {
-    (data_ + size_)->~T();
+  for (T* i = data_; i != data_ + size_; ++i) {
+    i->~T();
   }
-  (data_)->~T();
-  for (; size_ != rhs.size_; ++size_) {
+  for (size_ = 0; size_ != rhs.size_; ++size_) {
     new (data_ + size_) T { rhs.data_[size_] };
   }
   rows_ = rhs.rows_;
@@ -99,20 +103,53 @@ ftl::Matrix<T>::Matrix(Matrix&& rhs) noexcept :
 template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(Matrix&& rhs) noexcept
 {
-  if (this == &rhs) {
-    return *this;
+  if (this != &rhs) {
+    for (T* i = data_; i != data_ + size_; ++i) {
+      i->~T();
+    }
+    operator delete(data_);
+    data_ = std::exchange(rhs.data_, nullptr);
+    size_ = std::exchange(rhs.size_, 0);
+    capacity_ = std::exchange(rhs.capacity_, 0);
+    rows_ = std::exchange(rhs.rows_, 0);
+    columns_ = std::exchange(rhs.columns_, 0);
   }
-  for (; size_ != 0; --size_) {
-    (data_ + size_)->~T();
-  }
-  data_->~T();
-  operator delete(data_);
-  data_ = std::exchange(rhs.data_, nullptr);
-  size_ = std::exchange(rhs.size_, 0);
-  capacity_ = std::exchange(rhs.capacity_, 0);
-  rows_ = std::exchange(rhs.rows_, 0);
-  columns_ = std::exchange(rhs.columns_, 0);
   return *this;
+}
+
+template <typename T>
+ftl::Matrix<T>& ftl::Matrix<T>::operator+=(const ftl::Matrix<T>& rhs) &
+{
+  if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
+    throw std::invalid_argument("Matrix dimensions must match");
+  }
+  for (size_type i = 0; i != size_; ++i) {
+    data_[i] += rhs.data_[i];
+  }
+  return *this;
+}
+
+template <typename T>
+ftl::Matrix<T>& ftl::Matrix<T>::operator-=(const Matrix& rhs) &
+{
+  if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
+    throw std::invalid_argument("Matrix dimensions must match");
+  }
+  for (size_type i = 0; i != size_; ++i) {
+    data_[i] -= rhs.data_[i];
+  }
+  return *this;
+}
+
+template <typename T>
+void ftl::Matrix<T>::fill(const T& value)
+{
+  for (T* i = data_; i != data_ + size_; ++i) {
+    i->~T();
+  }
+  for (size_ = 0; size_ != rows_ * columns_; ++size_) {
+    new (data_ + size_) T { value };
+  }
 }
 
 #endif

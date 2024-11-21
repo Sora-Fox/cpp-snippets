@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <initializer_list>
 #include "../data-structures/matrix.hpp"
 
 template <typename T>
@@ -111,5 +110,40 @@ TYPED_TEST(MatrixTest, MoveAssignmentOperator)
 
   matrix = std::move(matrix);
   AssertMatricesEqual(matrix, MatrixTest<TypeParam>::CreateInitializedMatrix());
+}
+
+TYPED_TEST(MatrixTest, Fill)
+{
+  std::vector<TypeParam> values(9);
+  std::fill(values.begin(), values.end(), 10);
+  ftl::Matrix<TypeParam> matrix(3, 3, values.begin());
+  this->mat.fill(10);
+  AssertMatricesEqual(this->mat, matrix);
+}
+
+TYPED_TEST(MatrixTest, OperatorAdditionAssignment)
+{
+  ftl::Matrix<TypeParam> matrix(3, 3);
+  TypeParam value = 1;
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      matrix[i][j] = 2 * value++;
+    }
+  }
+  this->mat += MatrixTest<TypeParam>::CreateInitializedMatrix();
+  AssertMatricesEqual(this->mat, matrix);
+
+  ftl::Matrix<TypeParam> matrix1(3, 4);
+  EXPECT_THROW(matrix1 += this->mat, std::invalid_argument);
+}
+
+TYPED_TEST(MatrixTest, OperatorSubtractionAssignment)
+{
+  ftl::Matrix<TypeParam> matrix(3, 3);
+  this->mat -= MatrixTest<TypeParam>::CreateInitializedMatrix();
+  AssertMatricesEqual(this->mat, matrix);
+
+  ftl::Matrix<TypeParam> matrix1(3, 4);
+  EXPECT_THROW(matrix1 -= this->mat, std::invalid_argument);
 }
 
