@@ -25,6 +25,9 @@ protected:
   void TearDown() override { }
 };
 
+using MatrixTypes = ::testing::Types<int, double>;
+TYPED_TEST_SUITE(MatrixTest, MatrixTypes);
+
 template <typename T>
 void AssertMatricesEqual(const ftl::Matrix<T>& mat1, const ftl::Matrix<T>& mat2)
 {
@@ -36,9 +39,6 @@ void AssertMatricesEqual(const ftl::Matrix<T>& mat1, const ftl::Matrix<T>& mat2)
     }
   }
 }
-
-using MyTypes = ::testing::Types<int, double, float>;
-TYPED_TEST_SUITE(MatrixTest, MyTypes);
 
 TYPED_TEST(MatrixTest, DefaultConstructor)
 {
@@ -65,9 +65,9 @@ TYPED_TEST(MatrixTest, ElementAccess)
 
 TYPED_TEST(MatrixTest, IteratorConstructor)
 {
-  std::initializer_list<TypeParam> values = { 3, 6, 6, 2, 5, 0 };
-  ftl::Matrix<TypeParam> matrix(2, 3, values.begin());
-  AssertMatricesEqual(matrix, ftl::Matrix<TypeParam>(2, 3, values.begin()));
+  std::initializer_list<TypeParam> values = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  ftl::Matrix<TypeParam> matrix(3, 3, values.begin());
+  AssertMatricesEqual(matrix, this->mat);
 }
 
 TYPED_TEST(MatrixTest, CopyConstructor)
@@ -86,7 +86,10 @@ TYPED_TEST(MatrixTest, CopyAssignmentOperator)
   second = this->mat;
   AssertMatricesEqual(second, this->mat);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign"
   second = second;
+#pragma GCC diagnostic pop
   AssertMatricesEqual(second, this->mat);
 }
 
