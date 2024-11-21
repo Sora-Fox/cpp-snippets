@@ -23,6 +23,15 @@ namespace ftl {
       MatrixBuffer& operator=(MatrixBuffer&&) = delete;
       virtual ~MatrixBuffer();
     };
+
+    template <typename T>
+    MatrixBuffer<T>::~MatrixBuffer()
+    {
+      for (size_type i = 0; i != size_; ++i) {
+        (data_ + i)->~T();
+      }
+      operator delete(data_);
+    }
   }
 }
 
@@ -40,15 +49,6 @@ ftl::detail::MatrixBuffer<T>::MatrixBuffer(MatrixBuffer&& rhs) noexcept :
   rhs.size_ = 0;
   rhs.capacity_ = 0;
   rhs.data_ = nullptr;
-}
-
-template <typename T>
-ftl::detail::MatrixBuffer<T>::~MatrixBuffer()
-{
-  for (size_type i = 0; i != size_; ++i) {
-    (data_ + i)->~T();
-  }
-  operator delete(data_);
 }
 
 #endif
