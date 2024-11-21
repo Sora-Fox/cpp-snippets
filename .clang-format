@@ -1,0 +1,52 @@
+BasedOnStyle: WebKit 
+ColumnLimit: 80 
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+NamespaceIndentation: All
+AccessModifierOffset: -2 
+IndentAccessModifiers: false 
+ConstructorInitializerIndentWidth: 2
+MaxEmptyLinesToKeep: 1
+
+PointerAlignment: Left
+BinPackArguments: true
+BinPackParameters: true
+SpaceBeforeAssignmentOperators: true
+
+PenaltyBreakBeforeFirstCallParameter: 1000
+PenaltyReturnTypeOnItsOwnLine: 500
+
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false
+
+AlwaysBreakTemplateDeclarations: Yes
+BreakConstructorInitializers: AfterColon 
+BreakInheritanceList: AfterColon
+BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom 
+BraceWrapping:
+  AfterClass: true
+  AfterNamespace: false 
+  AfterFunction: true
+  AfterStruct: true
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: false 
+FixNamespaceComments: false
+
+IncludeBlocks: Preserve
+IncludeCategories:
+  - Regex: '^<.*>$'
+    Priority: 1
+  - Regex: '^main.*'
+    Priority: 2
+  - Regex: '^.*'
+    Priority: 3
+
