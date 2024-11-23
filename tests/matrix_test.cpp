@@ -69,6 +69,16 @@ TYPED_TEST(MatrixTest, IteratorConstructor)
   AssertMatricesEqual(matrix, this->mat);
 }
 
+TYPED_TEST(MatrixTest, InitializerListConstructor)
+{
+  ftl::Matrix<TypeParam> matrix = {
+    { 1, 2, 3 },
+    { 4, 5, 6 },
+    { 7, 8, 9 },
+  };
+  AssertMatricesEqual(matrix, this->mat);
+}
+
 TYPED_TEST(MatrixTest, CopyConstructor)
 {
   ftl::Matrix<TypeParam> matrix(this->mat);
@@ -147,3 +157,42 @@ TYPED_TEST(MatrixTest, OperatorSubtractionAssignment)
   EXPECT_THROW(matrix1 -= this->mat, std::invalid_argument);
 }
 
+TYPED_TEST(MatrixTest, SubtractionOperator)
+{
+  ftl::Matrix<TypeParam> matrix(3, 3);
+  this->mat = this->mat - this->mat;
+  AssertMatricesEqual(this->mat, matrix);
+}
+
+TYPED_TEST(MatrixTest, AdditionOperator)
+{
+  ftl::Matrix<TypeParam> matrix(3, 3);
+  TypeParam value = 1;
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      matrix[i][j] = 2 * value++;
+    }
+  }
+  this->mat = this->mat + this->mat;
+  AssertMatricesEqual(this->mat, matrix);
+}
+
+TYPED_TEST(MatrixTest, EqualOperator)
+{
+  ftl::Matrix<TypeParam> matrix1(3, 4);
+  ftl::Matrix<TypeParam> matrix2(3, 3);
+  ftl::Matrix<TypeParam> same = this->mat;
+  EXPECT_EQ(this->mat == matrix1, false);
+  EXPECT_EQ(this->mat == matrix2, false);
+  EXPECT_EQ(this->mat == same, true);
+}
+
+TYPED_TEST(MatrixTest, NotEqualOperator)
+{
+  ftl::Matrix<TypeParam> matrix1(3, 4);
+  ftl::Matrix<TypeParam> matrix2(3, 3);
+  ftl::Matrix<TypeParam> same = this->mat;
+  EXPECT_EQ(this->mat != matrix1, true);
+  EXPECT_EQ(this->mat != matrix2, true);
+  EXPECT_EQ(this->mat != same, false);
+}

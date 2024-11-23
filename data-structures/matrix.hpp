@@ -24,11 +24,16 @@ namespace ftl {
     Matrix(size_type, size_type);
     template <typename IterT>
     Matrix(size_type, size_type, const IterT&);
+    Matrix(const std::initializer_list<std::initializer_list<T>>&);
 
     const T* operator[](size_type row) const { return data_ + row * columns_; }
     T* operator[](size_type row) { return data_ + row * columns_; }
+
     Matrix& operator+=(const Matrix&) &;
     Matrix& operator-=(const Matrix&) &;
+
+    bool operator==(const Matrix&) const;
+    bool operator!=(const Matrix& rhs) const { return !(*this == rhs); }
 
     void fill(const T&);
 
@@ -63,10 +68,22 @@ ftl::Matrix<T>::Matrix(size_type rows, size_type columns, const IterT& begin) :
     new (data_ + size_) T { *i };
   }
 }
+template <typename T>
+ftl::Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& values) :
+  detail::MatrixBuffer<T>(values.size() * values.begin()->size()), rows_(values.size()),
+  columns_(values.begin()->size())
+{
+  for (auto i = values.begin(); i != values.end(); ++i) {
+    for (auto j = i->begin(); j != i->end(); ++j, ++size_) {
+      new (data_ + size_) T { *j };
+    }
+  }
+}
 
 template <typename T>
 ftl::Matrix<T>::Matrix(const Matrix& rhs) :
-  detail::MatrixBuffer<T>(rhs.rows_ * rhs.columns_), rows_(rhs.rows_), columns_(rhs.columns_)
+  detail::MatrixBuffer<T>(rhs.rows_ * rhs.columns_), rows_(rhs.rows_),
+  columns_(rhs.columns_)
 {
   for (; size_ != rhs.size_; ++size_) {
     new (data_ + size_) T { rhs.data_[size_] };
@@ -142,6 +159,20 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator-=(const Matrix& rhs) &
 }
 
 template <typename T>
+bool ftl::Matrix<T>::operator==(const Matrix& rhs) const
+{
+  if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
+    return false;
+  }
+  for (size_type i = 0; i != size_; ++i) {
+    if (!(data_[i] == rhs.data_[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
 void ftl::Matrix<T>::fill(const T& value)
 {
   for (T* i = data_; i != data_ + size_; ++i) {
@@ -150,6 +181,22 @@ void ftl::Matrix<T>::fill(const T& value)
   for (size_ = 0; size_ != rows_ * columns_; ++size_) {
     new (data_ + size_) T { value };
   }
+}
+
+template <typename T>
+ftl::Matrix<T> operator+(const ftl::Matrix<T>& lhs, const ftl::Matrix<T>& rhs)
+{
+  ftl::Matrix<T> result = lhs;
+  result += rhs;
+  return result;
+}
+
+template <typename T>
+ftl::Matrix<T> operator-(const ftl::Matrix<T>& lhs, const ftl::Matrix<T>& rhs)
+{
+  ftl::Matrix<T> result = lhs;
+  result -= rhs;
+  return result;
 }
 
 #endif
