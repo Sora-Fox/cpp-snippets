@@ -122,15 +122,6 @@ TYPED_TEST(MatrixTest, MoveAssignmentOperator)
   AssertMatricesEqual(matrix, MatrixTest<TypeParam>::CreateInitializedMatrix());
 }
 
-TYPED_TEST(MatrixTest, Fill)
-{
-  std::vector<TypeParam> values(9);
-  std::fill(values.begin(), values.end(), 10);
-  ftl::Matrix<TypeParam> matrix(3, 3, values.begin());
-  this->mat.fill(10);
-  AssertMatricesEqual(this->mat, matrix);
-}
-
 TYPED_TEST(MatrixTest, OperatorAdditionAssignment)
 {
   ftl::Matrix<TypeParam> matrix(3, 3);
@@ -182,6 +173,7 @@ TYPED_TEST(MatrixTest, EqualOperator)
   ftl::Matrix<TypeParam> matrix1(3, 4);
   ftl::Matrix<TypeParam> matrix2(3, 3);
   ftl::Matrix<TypeParam> same = this->mat;
+  EXPECT_EQ(matrix1 == matrix2, false);
   EXPECT_EQ(this->mat == matrix1, false);
   EXPECT_EQ(this->mat == matrix2, false);
   EXPECT_EQ(this->mat == same, true);

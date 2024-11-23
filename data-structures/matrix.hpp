@@ -1,8 +1,8 @@
 #ifndef FTL_MATRIX_HPP
 #define FTL_MATRIX_HPP
 
+#include <algorithm>
 #include <stdexcept>
-#include <utility>
 #include "matrix_buffer.hpp"
 
 namespace ftl {
@@ -35,15 +35,15 @@ namespace ftl {
     bool operator==(const Matrix&) const;
     bool operator!=(const Matrix& rhs) const { return !(*this == rhs); }
 
-    void fill(const T&);
-
     size_type rows() const noexcept { return rows_; }
     size_type columns() const noexcept { return columns_; }
+    size_type size() const noexcept { return rows_ * columns_; }
 
   private:
     using detail::MatrixBuffer<T>::data_;
-    using detail::MatrixBuffer<T>::size_;
     using detail::MatrixBuffer<T>::capacity_;
+    using detail::MatrixBuffer<T>::construct;
+    using detail::MatrixBuffer<T>::destruct;
 
     size_type rows_;
     size_type columns_;
@@ -54,9 +54,7 @@ template <typename T>
 ftl::Matrix<T>::Matrix(size_type rows, size_type columns) :
   detail::MatrixBuffer<T>(rows * columns), rows_(rows), columns_(columns)
 {
-  for (; size_ != rows_ * columns_; ++size_) {
-    new (data_ + size_) T {};
-  }
+  construct(data_, data_ + size(), T {});
 }
 
 template <typename T>
@@ -64,19 +62,21 @@ template <typename IterT>
 ftl::Matrix<T>::Matrix(size_type rows, size_type columns, const IterT& begin) :
   detail::MatrixBuffer<T>(rows * columns), rows_(rows), columns_(columns)
 {
-  for (auto i = begin; size_ != rows_ * columns_; ++size_, ++i) {
-    new (data_ + size_) T { *i };
-  }
+  construct(data_, data_ + size(), begin);
 }
+
 template <typename T>
 ftl::Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& values) :
   detail::MatrixBuffer<T>(values.size() * values.begin()->size()), rows_(values.size()),
   columns_(values.begin()->size())
 {
-  for (auto i = values.begin(); i != values.end(); ++i) {
-    for (auto j = i->begin(); j != i->end(); ++j, ++size_) {
-      new (data_ + size_) T { *j };
+
+  for (T* it = data_; const auto& row : values) {
+    if (row.size() != columns_) {
+      throw std::invalid_argument("All rows must have the same number of elements");
     }
+    construct(it, it + columns_, row.begin());
+    it += columns_;
   }
 }
 
@@ -85,9 +85,7 @@ ftl::Matrix<T>::Matrix(const Matrix& rhs) :
   detail::MatrixBuffer<T>(rhs.rows_ * rhs.columns_), rows_(rhs.rows_),
   columns_(rhs.columns_)
 {
-  for (; size_ != rhs.size_; ++size_) {
-    new (data_ + size_) T { rhs.data_[size_] };
-  }
+  construct(data_, data_ + size(), rhs.data_);
 }
 
 template <typename T>
@@ -98,12 +96,8 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator=(const Matrix& rhs)
     std::swap(*this, tmp);
     return *this;
   }
-  for (T* i = data_; i != data_ + size_; ++i) {
-    i->~T();
-  }
-  for (size_ = 0; size_ != rhs.size_; ++size_) {
-    new (data_ + size_) T { rhs.data_[size_] };
-  }
+  destruct(data_, data_ + size());
+  construct(data_, data_ + rhs.size(), rhs.data_);
   rows_ = rhs.rows_;
   columns_ = rhs.columns_;
   return *this;
@@ -121,13 +115,7 @@ template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(Matrix&& rhs) noexcept
 {
   if (this != &rhs) {
-    for (T* i = data_; i != data_ + size_; ++i) {
-      i->~T();
-    }
-    operator delete(data_);
-    data_ = std::exchange(rhs.data_, nullptr);
-    size_ = std::exchange(rhs.size_, 0);
-    capacity_ = std::exchange(rhs.capacity_, 0);
+    detail::MatrixBuffer<T>::operator=(std::move(rhs));
     rows_ = std::exchange(rhs.rows_, 0);
     columns_ = std::exchange(rhs.columns_, 0);
   }
@@ -140,9 +128,7 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator+=(const ftl::Matrix<T>& rhs) &
   if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
     throw std::invalid_argument("Matrix dimensions must match");
   }
-  for (size_type i = 0; i != size_; ++i) {
-    data_[i] += rhs.data_[i];
-  }
+  std::transform(data_, data_ + size(), rhs.data_, data_, std::plus<> {});
   return *this;
 }
 
@@ -152,9 +138,7 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator-=(const Matrix& rhs) &
   if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
     throw std::invalid_argument("Matrix dimensions must match");
   }
-  for (size_type i = 0; i != size_; ++i) {
-    data_[i] -= rhs.data_[i];
-  }
+  std::transform(data_, data_ + size(), rhs.data_, data_, std::minus<> {});
   return *this;
 }
 
@@ -164,23 +148,7 @@ bool ftl::Matrix<T>::operator==(const Matrix& rhs) const
   if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
     return false;
   }
-  for (size_type i = 0; i != size_; ++i) {
-    if (!(data_[i] == rhs.data_[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template <typename T>
-void ftl::Matrix<T>::fill(const T& value)
-{
-  for (T* i = data_; i != data_ + size_; ++i) {
-    i->~T();
-  }
-  for (size_ = 0; size_ != rows_ * columns_; ++size_) {
-    new (data_ + size_) T { value };
-  }
+  return std::equal(data_, data_ + size(), rhs.data_, rhs.data_ + size());
 }
 
 template <typename T>
