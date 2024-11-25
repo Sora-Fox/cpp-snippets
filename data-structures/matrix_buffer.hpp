@@ -1,42 +1,41 @@
 #ifndef FTL_DETAIL_MATRIX_BUFFER_HPP
 #define FTL_DETAIL_MATRIX_BUFFER_HPP
 
+#include <iterator>
 #include <utility>
 
-namespace ftl {
-  namespace detail {
-    template <typename T>
-    class MatrixBuffer
-    {
-    protected:
-      using value_type = T;
-      using size_type = std::size_t;
+namespace ftl::detail {
+  template <typename T>
+  class MatrixBuffer
+  {
+  protected:
+    using value_type = T;
+    using size_type = std::size_t;
 
-      size_type capacity_;
-      T* data_;
+    size_type capacity_;
+    T* data_;
 
-      MatrixBuffer(size_type = 0);
-      MatrixBuffer(const MatrixBuffer&) = delete;
-      MatrixBuffer& operator=(const MatrixBuffer&) = delete;
-      MatrixBuffer(MatrixBuffer&&) noexcept;
-      MatrixBuffer& operator=(MatrixBuffer&&) noexcept;
-      virtual ~MatrixBuffer();
+    MatrixBuffer(size_type = 0);
+    MatrixBuffer(const MatrixBuffer&) = delete;
+    MatrixBuffer& operator=(const MatrixBuffer&) = delete;
+    MatrixBuffer(MatrixBuffer&&) noexcept;
+    MatrixBuffer& operator=(MatrixBuffer&&) noexcept;
+    virtual ~MatrixBuffer();
 
-      template <typename FwdIt>
-      void construct(T*, T*, FwdIt);
-      void construct(T*, T*, const T& = T {});
-      void destruct(T*, T*);
+    template <std::input_iterator InputIt>
+    void construct(T*, T*, InputIt);
+    void construct(T*, T*, const T& = T {});
+    void destruct(T*, T*);
 
-    private:
-      size_type constructed_ = 0;
-    };
+  private:
+    size_type constructed_ = 0;
+  };
 
-    template <typename T>
-    MatrixBuffer<T>::~MatrixBuffer()
-    {
-      destruct(data_, data_ + constructed_);
-      operator delete(data_);
-    }
+  template <typename T>
+  MatrixBuffer<T>::~MatrixBuffer()
+  {
+    destruct(data_, data_ + constructed_);
+    operator delete(data_);
   }
 }
 
@@ -69,11 +68,11 @@ ftl::detail::MatrixBuffer<T>& ftl::detail::MatrixBuffer<T>::operator=(
 }
 
 template <typename T>
-template <typename FwdIt>
-void ftl::detail::MatrixBuffer<T>::construct(T* begin, T* end, FwdIt values)
+template <std::input_iterator InputIt>
+void ftl::detail::MatrixBuffer<T>::construct(T* begin, T* end, InputIt values)
 {
   for (; begin != end; ++begin, ++values, ++constructed_) {
-    new (begin) T { *values };
+    new (begin) T(*values);
   }
 }
 
@@ -81,7 +80,7 @@ template <typename T>
 void ftl::detail::MatrixBuffer<T>::construct(T* begin, T* end, const T& value)
 {
   for (; begin != end; ++begin, ++constructed_) {
-    new (begin) T { value };
+    new (begin) T(value);
   }
 }
 
