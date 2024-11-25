@@ -2,8 +2,8 @@
 #define FTL_MATRIX_HPP
 
 #include <algorithm>
-#include <stdexcept>
 #include "matrix_buffer.hpp"
+#include "matrix_iterator_base.hpp"
 
 namespace ftl {
 
@@ -13,13 +13,14 @@ namespace ftl {
   public:
     using typename detail::MatrixBuffer<T>::size_type;
     using typename detail::MatrixBuffer<T>::value_type;
+    using iterator = detail::MatrixIteratorBase<T, T*, T&>;
+    using const_iterator = detail::MatrixIteratorBase<T, const T*, const T&>;
 
     Matrix() : Matrix(0, 0) { }
     Matrix(const Matrix& rhs);
     Matrix(Matrix&& rhs) noexcept;
     Matrix& operator=(const Matrix& rhs);
     Matrix& operator=(Matrix&& rhs) noexcept;
-    virtual ~Matrix() = default;
 
     Matrix(size_type, size_type);
     template <typename IterT>
@@ -38,6 +39,11 @@ namespace ftl {
     size_type rows() const noexcept { return rows_; }
     size_type columns() const noexcept { return columns_; }
     size_type size() const noexcept { return rows_ * columns_; }
+
+    iterator begin() { return iterator(data_); }
+    iterator end() { return iterator(data_ + size()); }
+    const_iterator begin() const { return const_iterator(data_); }
+    const_iterator end() const { return const_iterator(data_ + size()); }
 
   private:
     using detail::MatrixBuffer<T>::data_;
@@ -66,12 +72,12 @@ ftl::Matrix<T>::Matrix(size_type rows, size_type columns, const IterT& begin) :
 }
 
 template <typename T>
-ftl::Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& values) :
-  detail::MatrixBuffer<T>(values.size() * values.begin()->size()), rows_(values.size()),
-  columns_(values.begin()->size())
+ftl::Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& list) :
+  detail::MatrixBuffer<T>(list.size() * list.begin()->size()), rows_(list.size()),
+  columns_(list.begin()->size())
 {
-
-  for (T* it = data_; const auto& row : values) {
+  T* it = data_;
+  for (const auto& row : list) {
     if (row.size() != columns_) {
       throw std::invalid_argument("All rows must have the same number of elements");
     }
