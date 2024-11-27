@@ -6,13 +6,12 @@
 
 namespace ftl::detail {
   template <typename T>
-  class MatrixBuffer
+  class MatrixBuffer final
   {
-  protected:
+  public:
     using value_type = T;
     using size_type = std::size_t;
 
-    size_type capacity_;
     T* data_;
 
     MatrixBuffer(size_type = 0);
@@ -20,15 +19,18 @@ namespace ftl::detail {
     MatrixBuffer& operator=(const MatrixBuffer&) = delete;
     MatrixBuffer(MatrixBuffer&&) noexcept;
     MatrixBuffer& operator=(MatrixBuffer&&) noexcept;
-    virtual ~MatrixBuffer();
+    ~MatrixBuffer();
 
     template <std::input_iterator InputIt>
     void construct(T*, T*, InputIt);
     void construct(T*, T*, const T& = T {});
     void destruct(T*, T*);
 
+    size_type capacity() const noexcept { return capacity_; }
+
   private:
     size_type constructed_ = 0;
+    size_type capacity_;
   };
 
   template <typename T>
@@ -41,14 +43,15 @@ namespace ftl::detail {
 
 template <typename T>
 ftl::detail::MatrixBuffer<T>::MatrixBuffer(size_type capacity) :
-  capacity_(capacity),
-  data_(capacity ? static_cast<T*>(operator new(sizeof(T) * capacity)) : nullptr)
+  data_(capacity ? static_cast<T*>(operator new(sizeof(T) * capacity))
+                 : nullptr),
+  capacity_(capacity)
 {
 }
 
 template <typename T>
 ftl::detail::MatrixBuffer<T>::MatrixBuffer(MatrixBuffer&& rhs) noexcept :
-  capacity_(rhs.capacity_), data_(rhs.data_), constructed_(rhs.constructed_)
+  data_(rhs.data_), constructed_(rhs.constructed_), capacity_(rhs.capacity_)
 {
   rhs.constructed_ = 0;
   rhs.capacity_ = 0;

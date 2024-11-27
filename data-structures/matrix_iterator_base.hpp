@@ -27,7 +27,10 @@ namespace ftl::detail {
     MatrixIteratorBase& operator+=(difference_type n);
     MatrixIteratorBase& operator-=(difference_type n) { return (*this += -n); }
 
-    difference_type operator-(const MatrixIteratorBase& r) const { return p_ - r.p_; }
+    difference_type operator-(const MatrixIteratorBase& r) const
+    {
+      return p_ - r.p_;
+    }
     MatrixIteratorBase operator-(difference_type n) const { return p_ - n; }
 
     reference operator[](difference_type n) const { return *(p_ + n); }
@@ -70,7 +73,8 @@ namespace ftl::detail {
   }
 
   template <typename V, typename P, typename R>
-  MatrixIteratorBase<V, P, R>& MatrixIteratorBase<V, P, R>::operator+=(difference_type n)
+  MatrixIteratorBase<V, P, R>& MatrixIteratorBase<V, P, R>::operator+=(
+      difference_type n)
   {
     p_ += n;
     return *this;

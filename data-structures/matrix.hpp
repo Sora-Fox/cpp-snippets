@@ -2,19 +2,24 @@
 #define FTL_MATRIX_HPP
 
 #include <algorithm>
-#include <limits>
 #include "matrix_buffer.hpp"
 #include "matrix_iterator_base.hpp"
 
 namespace ftl {
   template <typename T>
-  class Matrix : private detail::MatrixBuffer<T>
+  class Matrix
   {
   public:
-    using typename detail::MatrixBuffer<T>::size_type;
-    using typename detail::MatrixBuffer<T>::value_type;
-    using iterator = detail::MatrixIteratorBase<T, T*, T&>;
-    using const_iterator = detail::MatrixIteratorBase<T, const T*, const T&>;
+    using size_type = typename detail::MatrixBuffer<T>::size_type;
+    using value_type = typename detail::MatrixBuffer<T>::value_type;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+
+    using iterator = detail::MatrixIteratorBase<value_type, pointer, reference>;
+    using const_iterator =
+        detail::MatrixIteratorBase<value_type, const_pointer, const_reference>;
     static_assert(std::contiguous_iterator<iterator>);
     static_assert(std::contiguous_iterator<const_iterator>);
 
@@ -23,15 +28,19 @@ namespace ftl {
     Matrix(Matrix&& rhs) noexcept;
     Matrix& operator=(const Matrix& rhs);
     Matrix& operator=(Matrix&& rhs) noexcept;
+    virtual ~Matrix() = default;
 
-    Matrix(size_type, size_type, const T& = T {});
+    Matrix(size_type, size_type, const_reference = value_type {});
     template <std::input_iterator InputIt>
     Matrix(size_type, size_type, const InputIt&);
-    template <typename U = T>
+    template <typename U = value_type>
     Matrix(const std::initializer_list<std::initializer_list<U>>&);
 
-    const T* operator[](size_type row) const { return data_ + row * columns_; }
-    T* operator[](size_type row) { return data_ + row * columns_; }
+    const_pointer operator[](size_type row) const
+    {
+      return data() + row * columns_;
+    }
+    pointer operator[](size_type row) { return data() + row * columns_; }
 
     Matrix& operator+=(const Matrix&) &;
     Matrix& operator-=(const Matrix&) &;
@@ -41,75 +50,72 @@ namespace ftl {
     size_type columns() const noexcept { return columns_; }
     size_type size() const noexcept { return rows_ * columns_; }
 
-    iterator begin() { return iterator(data_); }
-    iterator end() { return iterator(data_ + size()); }
-    const_iterator begin() const { return const_iterator(data_); }
-    const_iterator end() const { return const_iterator(data_ + size()); }
+    iterator begin() { return iterator(data()); }
+    iterator end() { return iterator(data() + size()); }
+    const_iterator begin() const { return const_iterator(data()); }
+    const_iterator end() const { return const_iterator(data() + size()); }
 
   private:
-    using detail::MatrixBuffer<T>::data_;
-    using detail::MatrixBuffer<T>::capacity_;
-    using detail::MatrixBuffer<T>::construct;
-    using detail::MatrixBuffer<T>::destruct;
-
+    detail::MatrixBuffer<T> buffer_;
     size_type rows_;
     size_type columns_;
 
+    value_type* data() const noexcept { return buffer_.data_; }
     void checkSizeTypeOverflow(size_type, size_type);
   };
 }
 
 template <typename T>
-ftl::Matrix<T>::Matrix(size_type rows, size_type columns, const T& value) :
-  detail::MatrixBuffer<T>(rows * columns), rows_(rows), columns_(columns)
+ftl::Matrix<T>::Matrix(size_type rows, size_type columns,
+                       const_reference value) :
+  buffer_(rows * columns), rows_(rows), columns_(columns)
 {
-  checkSizeTypeOverflow(rows_, columns_);
-  construct(data_, data_ + size(), value);
+  buffer_.construct(data(), data() + size(), value);
 }
 
 template <typename T>
 template <std::input_iterator InputIt>
-ftl::Matrix<T>::Matrix(size_type rows, size_type columns, const InputIt& begin) :
-  detail::MatrixBuffer<T>(rows * columns), rows_(rows), columns_(columns)
+ftl::Matrix<T>::Matrix(size_type rows, size_type columns,
+                       const InputIt& begin) :
+  buffer_(rows * columns), rows_(rows), columns_(columns)
 {
-  checkSizeTypeOverflow(rows_, columns_);
-  construct(data_, data_ + size(), begin);
+  buffer_.construct(data(), data() + size(), begin);
 }
 
 template <typename T>
 template <typename U>
-ftl::Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<U>>& list) :
-  detail::MatrixBuffer<T>(list.size() * list.begin()->size()), rows_(list.size()),
+ftl::Matrix<T>::Matrix(
+    const std::initializer_list<std::initializer_list<U>>& list) :
+  buffer_(list.size() * list.begin()->size()), rows_(list.size()),
   columns_(list.begin()->size())
 {
-  checkSizeTypeOverflow(rows_, columns_);
-  for (T* it = data_; const auto& row : list) {
+  for (pointer it = data(); const auto& row : list) {
     if (row.size() != columns_) {
-      throw std::invalid_argument("All rows must have the same number of columns");
+      throw std::invalid_argument(
+          "All rows must have the same number of columns");
     }
-    construct(it, it + columns_, row.begin());
+    buffer_.construct(it, it + columns_, row.begin());
     it += columns_;
   }
 }
 
 template <typename T>
 ftl::Matrix<T>::Matrix(const Matrix& rhs) :
-  detail::MatrixBuffer<T>(rhs.rows_ * rhs.columns_), rows_(rhs.rows_),
-  columns_(rhs.columns_)
+  buffer_(rhs.size()), rows_(rhs.rows_), columns_(rhs.columns_)
 {
-  construct(data_, data_ + size(), rhs.data_);
+  buffer_.construct(data(), data() + size(), rhs.data());
 }
 
 template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(const Matrix& rhs)
 {
-  if (capacity_ < rhs.rows_ * rhs.columns_) {
+  if (buffer_.capacity() < rhs.rows_ * rhs.columns_) {
     Matrix tmp { rhs };
     std::swap(*this, tmp);
     return *this;
   }
-  destruct(data_, data_ + size());
-  construct(data_, data_ + rhs.size(), rhs.data_);
+  buffer_.destruct(data(), data() + size());
+  buffer_.construct(data(), data() + rhs.size(), rhs.data());
   rows_ = rhs.rows_;
   columns_ = rhs.columns_;
   return *this;
@@ -117,7 +123,7 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator=(const Matrix& rhs)
 
 template <typename T>
 ftl::Matrix<T>::Matrix(Matrix&& rhs) noexcept :
-  detail::MatrixBuffer<T>(std::move(rhs)), rows_(rhs.rows_), columns_(rhs.columns_)
+  buffer_(std::move(rhs.buffer_)), rows_(rhs.rows_), columns_(rhs.columns_)
 {
   rhs.rows_ = 0;
   rhs.columns_ = 0;
@@ -127,7 +133,7 @@ template <typename T>
 ftl::Matrix<T>& ftl::Matrix<T>::operator=(Matrix&& rhs) noexcept
 {
   if (this != &rhs) {
-    detail::MatrixBuffer<T>::operator=(std::move(rhs));
+    buffer_ = std::move(rhs.buffer_);
     rows_ = std::exchange(rhs.rows_, 0);
     columns_ = std::exchange(rhs.columns_, 0);
   }
@@ -141,7 +147,7 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator+=(const ftl::Matrix<T>& rhs) &
     throw std::invalid_argument("Matrix dimensions must match");
   }
   for (size_type i = 0; i != size(); ++i) {
-    data_[i] += rhs.data_[i];
+    data()[i] += rhs.data()[i];
   }
   return *this;
 }
@@ -153,7 +159,7 @@ ftl::Matrix<T>& ftl::Matrix<T>::operator-=(const Matrix& rhs) &
     throw std::invalid_argument("Matrix dimensions must match");
   }
   for (size_type i = 0; i != size(); ++i) {
-    data_[i] -= rhs.data_[i];
+    data()[i] -= rhs.data()[i];
   }
   return *this;
 }
@@ -164,15 +170,7 @@ bool ftl::Matrix<T>::operator==(const Matrix& rhs) const
   if (rows_ != rhs.rows_ || columns_ != rhs.columns_) {
     return false;
   }
-  return std::equal(data_, data_ + size(), rhs.data_, rhs.data_ + size());
-}
-
-template <typename T>
-void ftl::Matrix<T>::checkSizeTypeOverflow(size_type first, size_type second)
-{
-  if (first != 0 && second > std::numeric_limits<size_type>::max() / first) {
-    throw std::overflow_error("Matrix size_type overflow");
-  }
+  return std::equal(begin(), end(), rhs.begin(), rhs.end());
 }
 
 template <typename T>
