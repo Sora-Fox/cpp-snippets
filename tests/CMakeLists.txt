@@ -1,34 +1,40 @@
-function(set_compile_warnings TARGET_NAME)
+function(set_compile_warnings TARGET)
     if(MSVC)
-      target_compile_options(${TARGET_NAME} PRIVATE /W4)
+        target_compile_options(${TARGET} PRIVATE /W4)
     else()
-      target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endfunction()
 
-find_package(GTest REQUIRED)
-find_program(VALGRIND "valgrind")
-if (VALGRIND)
-    message(STATUS "Valgrind found: ${VALGRIND}")
-else()
-    message(STATUS "Valgrind not found.")
-endif()
-
-set(TEST_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/matrix_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/matrix_iterator_test.cpp
-)
-foreach(TEST_FILE ${TEST_SOURCES})
-    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_FILE})
-    target_link_libraries(${TEST_NAME} PRIVATE ftl GTest::Main)
-    target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    set_compile_warnings(${TEST_NAME})
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-    if (VALGRIND)
-        add_test(NAME ${TEST_NAME}_valgrind COMMAND ${VALGRIND}
-            --leak-check=full --error-exitcode=1 --track-origins=yes
-            $<TARGET_FILE:${TEST_NAME}>)
+function(enable_sanitizers TARGET) 
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        message(WARNING "Sanitizers are not supported")
+        return()
     endif()
+    target_compile_options(${TARGET} PRIVATE
+        -fsanitize=address,undefined,leak
+        -fno-omit-frame-pointer)
+    target_link_options(${TARGET} PRIVATE -fsanitize=address,undefined,leak)
+endfunction()
+
+function(configure_target TARGET)
+    set_compile_warnings(${TARGET})
+    enable_sanitizers(${TARGET})
+endfunction()
+
+function(add_gtest TARGET SRC)
+    add_executable(${TARGET} ${SRC})
+    target_link_libraries(${TARGET} PRIVATE ftl GTest::Main)
+    target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    configure_target(${TARGET})
+    gtest_discover_tests(${TARGET})
+endfunction()
+
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp")
+message(STATUS "Test sources:")
+foreach(TEST_FILE ${TEST_SOURCES})
+    message(STATUS "  - ${TEST_FILE}")
+    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+    add_gtest(${TEST_NAME} ${TEST_FILE})
 endforeach()
 

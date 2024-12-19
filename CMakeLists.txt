@@ -21,6 +21,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if (ENABLE_TESTS)
     enable_testing()
+    include(cmake/FetchGoogleTest.cmake)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
     message(STATUS "Tests are enabled")
 else()
