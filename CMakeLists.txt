@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(cpp-snippets LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -10,6 +10,7 @@ option(ENABLE_TESTS "Enable building and running tests" ON)
 add_library(ftl INTERFACE)
 target_include_directories(ftl INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/data-structures>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/iterators>
 )
 
 if(NOT CMAKE_BUILD_TYPE)
